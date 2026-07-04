@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const siteTitle = "SAJA — афиши локальной контркультуры";
+const siteTitle = "САЖА — афиши локальных концертов";
 const siteDescription =
   "Актуальные афиши локальных концертов на ближайший месяц: города, билеты, встречи, маршрут до клуба и заявка на размещение.";
 

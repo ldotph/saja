@@ -17,6 +17,7 @@ export async function POST(request: Request) {
   const city = requiredString(formData, "city");
   const date = requiredString(formData, "date");
   const title = requiredString(formData, "title");
+  const artists = requiredString(formData, "artists");
   const venue = requiredString(formData, "venue");
   const ticketUrl = requiredString(formData, "ticketUrl");
   const meetingUrl = requiredString(formData, "meetingUrl");
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
   const consent = formData.get("consent");
   const poster = formData.get("poster");
 
-  if (!city || !date || !title || !venue || !ticketUrl || !telegramId || !consent) {
+  if (!city || !date || !artists || !venue || !ticketUrl || !telegramId || !consent) {
     return NextResponse.json(
       { message: "Заполните обязательные поля формы." },
       { status: 400 }
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
       city,
       date,
       title,
+      artists,
       venue,
       ticketUrl,
       meetingUrl,
@@ -95,6 +97,6 @@ export async function POST(request: Request) {
   );
 
   return NextResponse.json({
-    message: "Заявка отправлена. Мы увидим ее в панели администратора и свяжемся с вами в Telegram."
+    message: "Заявка отправлена на модерацию."
   });
 }

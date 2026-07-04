@@ -77,19 +77,24 @@ function AdminLogin({ hasError }: { hasError: boolean }) {
 }
 
 function SubmissionCard({ submission }: { submission: Submission }) {
+  const displayTitle = submission.title || submission.artists;
+
   return (
     <article className="admin-card">
       <img
         className="admin-card__poster"
         src={submission.posterUrl}
-        alt={`Афиша: ${submission.title}`}
+        alt={`Афиша: ${displayTitle}`}
       />
       <div className="admin-card__content">
         <div className="admin-card__meta">
           <span>{submissionStatusLabels[submission.status]}</span>
           <span>{formatAdminDate(submission.createdAt)}</span>
         </div>
-        <h3>{submission.title}</h3>
+        <h3>{displayTitle}</h3>
+        {submission.title ? (
+          <div className="admin-artists">{submission.artists}</div>
+        ) : null}
         <dl className="admin-details">
           <div>
             <dt>Город</dt>
@@ -149,19 +154,24 @@ function SubmissionCard({ submission }: { submission: Submission }) {
 }
 
 function EventCard({ event }: { event: CmsEvent }) {
+  const displayTitle = event.title || event.artists;
+
   return (
     <article className="admin-card">
       <img
         className="admin-card__poster"
         src={event.posterUrl}
-        alt={`Афиша: ${event.title}`}
+        alt={`Афиша: ${displayTitle}`}
       />
       <div className="admin-card__content">
         <div className="admin-card__meta">
           <span>{eventStatusLabels[event.status]}</span>
           <span>{event.dateLabel}</span>
         </div>
-        <h3>{event.title}</h3>
+        <h3>{displayTitle}</h3>
+        {event.title ? (
+          <div className="admin-artists">{event.artists}</div>
+        ) : null}
         <dl className="admin-details">
           <div>
             <dt>Город</dt>
@@ -252,8 +262,23 @@ function EventCard({ event }: { event: CmsEvent }) {
               <input name="date" type="date" required defaultValue={event.date} />
             </label>
             <label className="admin-field">
-              <span>Название события</span>
-              <input name="title" type="text" required defaultValue={event.title} />
+              <span>Название события, если есть</span>
+              <input
+                name="title"
+                type="text"
+                placeholder="Например: Test Fest vol. lV"
+                defaultValue={event.title ?? ""}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Выступающие коллективы</span>
+              <input
+                name="artists"
+                type="text"
+                required
+                placeholder="Например: Рок-музыкант, Панк-группа, Шумовой артист"
+                defaultValue={event.artists}
+              />
             </label>
             <label className="admin-field">
               <span>Клуб</span>
@@ -336,8 +361,21 @@ function CreateEventForm() {
         <input name="date" type="date" required />
       </label>
       <label className="admin-field">
-        <span>Название события</span>
-        <input name="title" type="text" required />
+        <span>Название события, если есть</span>
+        <input
+          name="title"
+          type="text"
+          placeholder="Например: Test Fest vol. lV"
+        />
+      </label>
+      <label className="admin-field">
+        <span>Выступающие коллективы</span>
+        <input
+          name="artists"
+          type="text"
+          required
+          placeholder="Например: Рок-музыкант, Панк-группа, Шумовой артист"
+        />
       </label>
       <label className="admin-field">
         <span>Клуб</span>
@@ -416,10 +454,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         <div>
           <p className="eyebrow">SAJA control</p>
           <h1>Панель администратора</h1>
-          <p>
-            Заявки хранятся 60 дней. Публикация афиши сразу меняет сайт без
-            ручной работы с кодом.
-          </p>
+          <p>Заявки хранятся 60 дней.</p>
         </div>
         <form action={logoutAction}>
           <button className="admin-button" type="submit">

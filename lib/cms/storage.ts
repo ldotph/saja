@@ -78,6 +78,12 @@ function normalizeOptionalUrl(url: string | undefined) {
   return trimmedUrl ? trimmedUrl : undefined;
 }
 
+function normalizeOptionalText(text: string | undefined) {
+  const trimmedText = text?.trim();
+
+  return trimmedText ? trimmedText : undefined;
+}
+
 function normalizeUploadUrl(url: string) {
   if (url.startsWith("/api/uploads/")) {
     return url;
@@ -91,16 +97,24 @@ function normalizeUploadUrl(url: string) {
 }
 
 function normalizeEvent(event: CmsEvent) {
+  const legacyTitle = event.title?.trim();
+
   return {
     ...event,
+    title: normalizeOptionalText(event.title),
+    artists: event.artists?.trim() || legacyTitle || "Без названия",
     posterUrl: normalizeUploadUrl(event.posterUrl),
     mapUrl: normalizeOptionalUrl(event.mapUrl)
   };
 }
 
 function normalizeSubmission(submission: Submission) {
+  const legacyTitle = submission.title?.trim();
+
   return {
     ...submission,
+    title: normalizeOptionalText(submission.title),
+    artists: submission.artists?.trim() || legacyTitle || "Без названия",
     posterUrl: normalizeUploadUrl(submission.posterUrl)
   };
 }
@@ -129,6 +143,7 @@ function eventToRecord(event: CmsEvent): EventRecord {
   return {
     id: event.id,
     title: event.title,
+    artists: event.artists,
     date: event.date,
     dateLabel: event.dateLabel,
     city: event.city,
@@ -263,6 +278,8 @@ export async function addSubmission(input: SubmissionInput, poster: File) {
   const submission: Submission = {
     id: randomUUID(),
     ...input,
+    title: normalizeOptionalText(input.title),
+    artists: input.artists,
     meetingUrl: normalizeOptionalUrl(input.meetingUrl),
     posterUrl,
     status: "new",
@@ -283,6 +300,8 @@ export async function createEvent(input: EventInput, poster: File) {
   const event: CmsEvent = {
     id: randomUUID(),
     ...input,
+    title: normalizeOptionalText(input.title),
+    artists: input.artists,
     mapUrl: normalizeOptionalUrl(input.mapUrl),
     meetingUrl: normalizeOptionalUrl(input.meetingUrl),
     dateLabel: formatDateLabel(input.date),
@@ -312,7 +331,8 @@ export async function updateEvent(
   event.city = input.city;
   event.date = input.date;
   event.dateLabel = formatDateLabel(input.date);
-  event.title = input.title;
+  event.title = normalizeOptionalText(input.title);
+  event.artists = input.artists;
   event.venue = input.venue;
   event.mapUrl = normalizeOptionalUrl(input.mapUrl);
   event.ticketUrl = input.ticketUrl;
@@ -346,6 +366,7 @@ export async function createDraftFromSubmission(submissionId: string) {
   const draft: CmsEvent = {
     id: randomUUID(),
     title: submission.title,
+    artists: submission.artists,
     date: submission.date,
     dateLabel: formatDateLabel(submission.date),
     city: submission.city,

@@ -10,7 +10,8 @@ export type EventAction = {
 
 export type EventRecord = {
   id: string;
-  title: string;
+  title?: string;
+  artists: string;
   date: string;
   dateLabel: string;
   city: string;
@@ -25,7 +26,8 @@ export type CmsEventStatus = "draft" | "published" | "hidden";
 
 export type CmsEvent = {
   id: string;
-  title: string;
+  title?: string;
+  artists: string;
   date: string;
   dateLabel: string;
   city: string;
@@ -51,7 +53,8 @@ export type Submission = {
   id: string;
   city: string;
   date: string;
-  title: string;
+  title?: string;
+  artists: string;
   venue: string;
   ticketUrl: string;
   meetingUrl?: string;
@@ -71,7 +74,8 @@ export type CmsStore = {
 export type SubmissionInput = {
   city: string;
   date: string;
-  title: string;
+  title?: string;
+  artists: string;
   venue: string;
   ticketUrl: string;
   meetingUrl?: string;
@@ -81,7 +85,8 @@ export type SubmissionInput = {
 export type EventInput = {
   city: string;
   date: string;
-  title: string;
+  title?: string;
+  artists: string;
   venue: string;
   mapUrl?: string;
   ticketUrl: string;

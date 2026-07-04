@@ -109,7 +109,8 @@ export async function createEventAction(formData: FormData) {
     {
       city: getRequiredString(formData, "city", "город"),
       date: getRequiredString(formData, "date", "дата"),
-      title: getRequiredString(formData, "title", "название события"),
+      title: normalizeOptionalString(getString(formData, "title")),
+      artists: getRequiredString(formData, "artists", "выступающие коллективы"),
       venue: getRequiredString(formData, "venue", "клуб"),
       mapUrl: normalizeOptionalString(mapUrl),
       ticketUrl,
@@ -165,7 +166,8 @@ export async function updateEventAction(formData: FormData) {
     {
       city: getRequiredString(formData, "city", "город"),
       date: getRequiredString(formData, "date", "дата"),
-      title: getRequiredString(formData, "title", "название события"),
+      title: normalizeOptionalString(getString(formData, "title")),
+      artists: getRequiredString(formData, "artists", "выступающие коллективы"),
       venue: getRequiredString(formData, "venue", "клуб"),
       mapUrl: normalizeOptionalString(mapUrl),
       ticketUrl,

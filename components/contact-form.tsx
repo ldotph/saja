@@ -6,6 +6,7 @@ type FormErrors = {
   city?: string;
   date?: string;
   title?: string;
+  artists?: string;
   venue?: string;
   ticketUrl?: string;
   meetingUrl?: string;
@@ -38,6 +39,7 @@ export function ContactForm() {
     const city = String(formData.get("city") ?? "").trim();
     const date = String(formData.get("date") ?? "").trim();
     const title = String(formData.get("title") ?? "").trim();
+    const artists = String(formData.get("artists") ?? "").trim();
     const venue = String(formData.get("venue") ?? "").trim();
     const ticketUrl = String(formData.get("ticketUrl") ?? "").trim();
     const meetingUrl = String(formData.get("meetingUrl") ?? "").trim();
@@ -53,8 +55,8 @@ export function ContactForm() {
       nextErrors.date = "Укажите дату концерта.";
     }
 
-    if (!title) {
-      nextErrors.title = "Укажите название события.";
+    if (!artists) {
+      nextErrors.artists = "Укажите выступающие коллективы.";
     }
 
     if (!venue) {
@@ -175,17 +177,33 @@ export function ContactForm() {
 
         <div className="form__field">
           <label className="form__label" htmlFor="title">
-            Название события
+            Название события, если есть
           </label>
           <input
             className="form__input"
             id="title"
             name="title"
             type="text"
-            placeholder="Например, Аферист / Supruga"
+            placeholder="Например: Test Fest vol. lV"
           />
           {errors.title ? (
             <div className="form__error">{errors.title}</div>
+          ) : null}
+        </div>
+
+        <div className="form__field">
+          <label className="form__label" htmlFor="artists">
+            Выступающие коллективы
+          </label>
+          <input
+            className="form__input"
+            id="artists"
+            name="artists"
+            type="text"
+            placeholder="Например: Рок-музыкант, Панк-группа, Шумовой артист"
+          />
+          {errors.artists ? (
+            <div className="form__error">{errors.artists}</div>
           ) : null}
         </div>
 

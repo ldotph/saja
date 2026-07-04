@@ -7,7 +7,8 @@ type EventAction = {
 };
 
 export type EventCardProps = {
-  title: string;
+  title?: string;
+  artists: string;
   dateLabel: string;
   city: string;
   venue: string;
@@ -19,6 +20,7 @@ export type EventCardProps = {
 
 export function EventCard({
   title,
+  artists,
   dateLabel,
   city,
   venue,
@@ -26,18 +28,21 @@ export function EventCard({
   poster,
   actions
 }: EventCardProps) {
+  const displayTitle = title || artists;
+
   return (
     <article className="card">
       <div className="card__poster">
         <Image
           src={poster}
-          alt={`Афиша: ${title}`}
+          alt={`Афиша: ${displayTitle}`}
           fill
           sizes="(max-width: 760px) 100vw, (max-width: 1080px) 50vw, 33vw"
         />
       </div>
       <div className="card__body">
-        <h3 className="card__title">{title}</h3>
+        <h3 className="card__title">{displayTitle}</h3>
+        {title ? <div className="card__artists">{artists}</div> : null}
         <div className="card__date">{dateLabel}</div>
         <div className="card__venue">
           {city},{" "}
@@ -53,7 +58,7 @@ export function EventCard({
           {actions.length > 0 ? (
             actions.map((action) => (
               <a
-                key={`${title}-${action.label}`}
+                key={`${displayTitle}-${action.label}`}
                 className={`card__action card__action--${action.variant}`}
                 href={action.href}
                 target="_blank"
