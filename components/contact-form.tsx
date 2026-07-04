@@ -18,6 +18,22 @@ type FormErrors = {
 const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+async function readResponseMessage(response: Response) {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const payload = (await response.json()) as { message?: string };
+
+    return payload.message;
+  }
+
+  if (response.status === 413) {
+    return "Файл слишком большой для загрузки. Попробуйте сжать афишу или отправить файл до 10 МБ.";
+  }
+
+  return "Сервер вернул техническую ошибку. Попробуйте отправить заявку еще раз.";
+}
+
 export function ContactForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<{
@@ -113,15 +129,15 @@ export function ContactForm() {
         body: formData
       });
 
-      const payload = (await response.json()) as { message?: string };
+      const responseMessage = await readResponseMessage(response);
 
       if (!response.ok) {
-        throw new Error(payload.message || "Не удалось отправить форму.");
+        throw new Error(responseMessage || "Не удалось отправить форму.");
       }
 
       setStatus({
         tone: "success",
-        message: payload.message || "Заявка успешно отправлена."
+        message: responseMessage || "Заявка успешно отправлена."
       });
       setErrors({});
       form.reset();
@@ -253,7 +269,7 @@ export function ContactForm() {
           ) : null}
         </div>
 
-        <div className="form__field form__field--full">
+        <div className="form__field">
           <label className="form__label" htmlFor="telegramId">
             Telegram ID для обратной связи
           </label>
