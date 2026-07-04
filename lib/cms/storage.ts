@@ -20,7 +20,7 @@ const ACCEPTED_FILE_TYPES = new Map([
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const SUBMISSION_RETENTION_DAYS = Number(
-  process.env.SUBMISSION_RETENTION_DAYS ?? 60
+  process.env.SUBMISSION_RETENTION_DAYS ?? 40
 );
 
 const storageDir = process.env.SAJA_STORAGE_DIR

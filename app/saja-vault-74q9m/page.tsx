@@ -454,7 +454,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         <div>
           <p className="eyebrow">SAJA control</p>
           <h1>Панель администратора</h1>
-          <p>Заявки хранятся 60 дней.</p>
+          <p>Заявки хранятся 40 дней.</p>
         </div>
         <form action={logoutAction}>
           <button className="admin-button" type="submit">
@@ -494,22 +494,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         </div>
       </section>
 
-      <section className="admin-section" aria-labelledby="processed-submissions-title">
-        <div className="admin-section__heading">
-          <h2 id="processed-submissions-title">Обработанные заявки</h2>
-          <span>{processedSubmissions.length}</span>
-        </div>
-        <div className="admin-list">
-          {processedSubmissions.length > 0 ? (
-            processedSubmissions.map((submission) => (
-              <SubmissionCard key={submission.id} submission={submission} />
-            ))
-          ) : (
-            <div className="empty-state">Обработанных заявок пока нет.</div>
-          )}
-        </div>
-      </section>
-
       <section className="admin-section" aria-labelledby="create-event-title">
         <div className="admin-section__heading">
           <h2 id="create-event-title">Быстро создать афишу</h2>
@@ -543,6 +527,24 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             <div className="empty-state">Опубликованных афиш пока нет.</div>
           )}
         </div>
+      </section>
+
+      <section className="admin-section" aria-labelledby="processed-submissions-title">
+        <details className="admin-collapsible">
+          <summary>
+            <span id="processed-submissions-title">Обработанные заявки</span>
+            <strong>{processedSubmissions.length}</strong>
+          </summary>
+          <div className="admin-list">
+            {processedSubmissions.length > 0 ? (
+              processedSubmissions.map((submission) => (
+                <SubmissionCard key={submission.id} submission={submission} />
+              ))
+            ) : (
+              <div className="empty-state">Обработанных заявок пока нет.</div>
+            )}
+          </div>
+        </details>
       </section>
     </main>
   );
