@@ -1,0 +1,543 @@
+:root {
+  --bg: #080808;
+  --surface: rgba(18, 18, 18, 0.92);
+  --surface-strong: #141414;
+  --text: #f6f2ea;
+  --muted: #bab1a4;
+  --line: rgba(246, 242, 234, 0.12);
+  --accent: #d96a35;
+  --accent-strong: #f08b58;
+  --accent-soft: rgba(217, 106, 53, 0.16);
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --radius-sm: 14px;
+  --font-sans: "Avenir Next Condensed", "Arial Narrow", "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top left, rgba(217, 106, 53, 0.2), transparent 24%),
+    radial-gradient(circle at top right, rgba(240, 139, 88, 0.1), transparent 18%),
+    linear-gradient(180deg, #020202 0%, #080808 40%, #0f0f0f 100%);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.page-shell {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.hero,
+.concerts,
+.contact {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgba(26, 26, 26, 0.96), rgba(14, 14, 14, 0.96)),
+    var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.hero {
+  min-height: 480px;
+  padding: 28px;
+}
+
+.hero__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(217, 106, 53, 0.14), transparent 42%),
+    radial-gradient(circle at 85% 15%, rgba(217, 106, 53, 0.14), transparent 18%),
+    linear-gradient(120deg, transparent 0%, transparent 58%, rgba(255, 255, 255, 0.04) 58%, rgba(255, 255, 255, 0.04) 61%, transparent 61%);
+  pointer-events: none;
+}
+
+.hero__header,
+.hero__content,
+.section-heading {
+  position: relative;
+  z-index: 1;
+}
+
+.hero__header {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.brand {
+  display: flex;
+  min-width: 0;
+}
+
+.brand--hero {
+  width: 100%;
+}
+
+.brand__mark {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand__mark--hero {
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  margin: 0 auto;
+}
+
+.brand__mark--wide {
+  width: min(100%, 280px);
+  aspect-ratio: 2.5 / 1;
+}
+
+.brand__mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hero__cta,
+.card__action,
+.filters__button,
+.form__submit {
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #130d09;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 16px 30px rgba(217, 106, 53, 0.2);
+}
+
+.hero__content {
+  max-width: 860px;
+  padding-top: 30px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hero h1,
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(2.8rem, 6vw, 5.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  letter-spacing: 0.005em;
+  line-height: 0.98;
+}
+
+.hero__lead,
+.section-copy {
+  max-width: 720px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: clamp(1rem, 2.1vw, 1.25rem);
+  line-height: 1.5;
+}
+
+.hero__lead {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero__content .hero__cta {
+  margin-top: 26px;
+}
+
+.concerts,
+.contact {
+  margin-top: 22px;
+  padding: 28px;
+}
+
+.section-heading {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.filters {
+  display: grid;
+  gap: 24px;
+}
+
+.filters__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filters__button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.filters__button[aria-pressed="true"] {
+  background: var(--text);
+  color: #0e0e0e;
+  border-color: var(--text);
+  box-shadow: 0 10px 30px rgba(246, 242, 234, 0.12);
+}
+
+.filters__summary {
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(24, 24, 24, 0.96), rgba(12, 12, 12, 0.98));
+}
+
+.card__poster {
+  position: relative;
+  aspect-ratio: 0.72;
+  overflow: hidden;
+  background: #1a1a1a;
+}
+
+.card__poster img {
+  object-fit: cover;
+}
+
+.card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+
+.card__priority {
+  align-self: flex-start;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.card__title {
+  margin: 0;
+  font-size: 1.55rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.card__date {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.card__venue {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.card__venue a {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.card__note {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.card__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(246, 242, 234, 0.16);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card__action--primary {
+  background: var(--accent);
+  color: #130d09;
+  border-color: rgba(217, 106, 53, 0.3);
+}
+
+.card__action--secondary {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+.contact-form {
+  display: grid;
+  gap: 18px;
+}
+
+.form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.form__field,
+.form__field--full {
+  display: grid;
+  gap: 8px;
+}
+
+.form__field--full {
+  grid-column: 1 / -1;
+}
+
+.form__label {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.form__input,
+.form__textarea,
+.form__file {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px 16px;
+  color: var(--text);
+}
+
+.form__textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+.form__hint,
+.form__policy,
+.form__status {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.form__policy {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.form__policy input {
+  margin-top: 3px;
+}
+
+.form__error {
+  color: #f08b58;
+  font-size: 0.9rem;
+}
+
+.form__status {
+  min-height: 1.5em;
+}
+
+.form__status[data-tone="success"] {
+  color: #25613f;
+}
+
+.form__status[data-tone="error"] {
+  color: #f08b58;
+}
+
+.form__submit {
+  justify-self: start;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #130d09;
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.form__submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.empty-state {
+  padding: 24px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero__cta:hover,
+  .card__action:hover,
+  .filters__button:hover,
+  .form__submit:hover {
+    transform: translateY(-1px);
+  }
+
+  .card__action--secondary:hover,
+  .filters__button:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .card__action--primary:hover,
+  .form__submit:hover {
+    background: var(--accent-strong);
+  }
+}
+
+@media (max-width: 1080px) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .page-shell {
+    width: min(100% - 20px, 1240px);
+    padding-top: 10px;
+  }
+
+  .hero,
+  .concerts,
+  .contact {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .hero {
+    min-height: auto;
+  }
+
+  .hero__header {
+    justify-content: flex-start;
+  }
+
+  .brand__mark--hero {
+    width: min(100%, 560px);
+    aspect-ratio: 3 / 1;
+  }
+
+  .hero__content {
+    padding-top: 28px;
+    text-align: center;
+  }
+
+  .hero h1,
+  .section-heading h2 {
+    font-size: clamp(2.1rem, 12vw, 3.2rem);
+  }
+
+  .cards,
+  .form__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card__actions {
+    flex-direction: column;
+  }
+
+  .card__action,
+  .form__submit,
+  .hero__cta {
+    width: 100%;
+  }
+}
