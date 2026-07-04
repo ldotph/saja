@@ -663,6 +663,11 @@ textarea {
   text-underline-offset: 0.16em;
 }
 
+.admin-note {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .admin-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

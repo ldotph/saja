@@ -5,6 +5,7 @@ import type { CmsEvent, Submission } from "@/lib/cms/types";
 import {
   createDraftFromSubmissionAction,
   createEventAction,
+  deleteEventAction,
   hideEventAction,
   loginAction,
   logoutAction,
@@ -117,24 +118,31 @@ function SubmissionCard({ submission }: { submission: Submission }) {
             </a>
           ) : null}
         </div>
-        <div className="admin-actions">
-          <form action={createDraftFromSubmissionAction}>
-            <input name="id" type="hidden" value={submission.id} />
-            <button
-              className="admin-button admin-button--primary"
-              type="submit"
-              disabled={Boolean(submission.eventDraftId)}
-            >
-              Создать черновик
-            </button>
-          </form>
-          <form action={rejectSubmissionAction}>
-            <input name="id" type="hidden" value={submission.id} />
-            <button className="admin-button" type="submit">
-              Отклонить
-            </button>
-          </form>
-        </div>
+        {submission.status === "new" ? (
+          <div className="admin-actions">
+            <form action={createDraftFromSubmissionAction}>
+              <input name="id" type="hidden" value={submission.id} />
+              <button
+                className="admin-button admin-button--primary"
+                type="submit"
+              >
+                Создать черновик
+              </button>
+            </form>
+            <form action={rejectSubmissionAction}>
+              <input name="id" type="hidden" value={submission.id} />
+              <button className="admin-button" type="submit">
+                Отклонить
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="admin-note">
+            {submission.status === "draft_created"
+              ? "Черновик уже создан и находится в разделе афиш."
+              : "Заявка обработана."}
+          </div>
+        )}
       </div>
     </article>
   );
@@ -165,7 +173,15 @@ function EventCard({ event }: { event: CmsEvent }) {
           </div>
           <div>
             <dt>Клуб</dt>
-            <dd>{event.venue}</dd>
+            <dd>
+              {event.mapUrl ? (
+                <a href={event.mapUrl} target="_blank" rel="noreferrer">
+                  {event.venue}
+                </a>
+              ) : (
+                event.venue
+              )}
+            </dd>
           </div>
           <div>
             <dt>Приоритет</dt>
@@ -179,6 +195,11 @@ function EventCard({ event }: { event: CmsEvent }) {
           {event.meetingUrl ? (
             <a href={event.meetingUrl} target="_blank" rel="noreferrer">
               Встреча VK
+            </a>
+          ) : null}
+          {event.mapUrl ? (
+            <a href={event.mapUrl} target="_blank" rel="noreferrer">
+              Карта
             </a>
           ) : null}
         </div>
@@ -197,6 +218,12 @@ function EventCard({ event }: { event: CmsEvent }) {
             <input name="id" type="hidden" value={event.id} />
             <button className="admin-button" type="submit">
               Скрыть
+            </button>
+          </form>
+          <form action={deleteEventAction}>
+            <input name="id" type="hidden" value={event.id} />
+            <button className="admin-button" type="submit">
+              Удалить с сайта
             </button>
           </form>
           <form action={returnEventToDraftAction}>
@@ -239,6 +266,15 @@ function EventCard({ event }: { event: CmsEvent }) {
                 type="url"
                 required
                 defaultValue={event.ticketUrl}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Карта клуба</span>
+              <input
+                name="mapUrl"
+                type="url"
+                placeholder="https://yandex.ru/maps/..."
+                defaultValue={event.mapUrl ?? ""}
               />
             </label>
             <label className="admin-field">
@@ -312,6 +348,10 @@ function CreateEventForm() {
         <input name="ticketUrl" type="url" placeholder="https://..." required />
       </label>
       <label className="admin-field">
+        <span>Карта клуба</span>
+        <input name="mapUrl" type="url" placeholder="https://yandex.ru/maps/..." />
+      </label>
+      <label className="admin-field">
         <span>Встреча VK</span>
         <input name="meetingUrl" type="url" placeholder="https://vk.ru/..." />
       </label>
@@ -361,6 +401,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const publishedEventsCount = events.filter(
     (event) => event.status === "published"
   ).length;
+  const newSubmissions = submissions.filter(
+    (submission) => submission.status === "new"
+  );
+  const processedSubmissions = submissions.filter(
+    (submission) => submission.status !== "new"
+  );
+  const draftEvents = events.filter((event) => event.status !== "published");
+  const publishedEvents = events.filter((event) => event.status === "published");
 
   return (
     <main className="admin-shell">
@@ -398,15 +446,31 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <section className="admin-section" aria-labelledby="submissions-title">
         <div className="admin-section__heading">
           <h2 id="submissions-title">Заявки</h2>
-          <span>{submissions.length}</span>
+          <span>{newSubmissions.length}</span>
         </div>
         <div className="admin-list">
-          {submissions.length > 0 ? (
-            submissions.map((submission) => (
+          {newSubmissions.length > 0 ? (
+            newSubmissions.map((submission) => (
               <SubmissionCard key={submission.id} submission={submission} />
             ))
           ) : (
-            <div className="empty-state">Заявок пока нет.</div>
+            <div className="empty-state">Новых заявок пока нет.</div>
+          )}
+        </div>
+      </section>
+
+      <section className="admin-section" aria-labelledby="processed-submissions-title">
+        <div className="admin-section__heading">
+          <h2 id="processed-submissions-title">Обработанные заявки</h2>
+          <span>{processedSubmissions.length}</span>
+        </div>
+        <div className="admin-list">
+          {processedSubmissions.length > 0 ? (
+            processedSubmissions.map((submission) => (
+              <SubmissionCard key={submission.id} submission={submission} />
+            ))
+          ) : (
+            <div className="empty-state">Обработанных заявок пока нет.</div>
           )}
         </div>
       </section>
@@ -418,16 +482,30 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         <CreateEventForm />
       </section>
 
-      <section className="admin-section" aria-labelledby="events-title">
+      <section className="admin-section" aria-labelledby="draft-events-title">
         <div className="admin-section__heading">
-          <h2 id="events-title">Афиши</h2>
-          <span>{events.length}</span>
+          <h2 id="draft-events-title">Черновики и скрытые афиши</h2>
+          <span>{draftEvents.length}</span>
         </div>
         <div className="admin-list">
-          {events.length > 0 ? (
-            events.map((event) => <EventCard key={event.id} event={event} />)
+          {draftEvents.length > 0 ? (
+            draftEvents.map((event) => <EventCard key={event.id} event={event} />)
           ) : (
-            <div className="empty-state">Черновиков и опубликованных афиш пока нет.</div>
+            <div className="empty-state">Черновиков и скрытых афиш пока нет.</div>
+          )}
+        </div>
+      </section>
+
+      <section className="admin-section" aria-labelledby="published-events-title">
+        <div className="admin-section__heading">
+          <h2 id="published-events-title">Опубликованные афиши</h2>
+          <span>{publishedEvents.length}</span>
+        </div>
+        <div className="admin-list">
+          {publishedEvents.length > 0 ? (
+            publishedEvents.map((event) => <EventCard key={event.id} event={event} />)
+          ) : (
+            <div className="empty-state">Опубликованных афиш пока нет.</div>
           )}
         </div>
       </section>

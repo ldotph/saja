@@ -5,5 +5,4 @@ export const CITY_OPTIONS = [
   "Нижний Новгород"
 ] as const;
 
-export const ADMIN_BASE_PATH = "/ratusha-desk-7x4p";
-
+export const ADMIN_BASE_PATH = "/saja-vault-74q9m";

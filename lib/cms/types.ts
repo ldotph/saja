@@ -30,6 +30,7 @@ export type CmsEvent = {
   dateLabel: string;
   city: string;
   venue: string;
+  mapUrl?: string;
   ticketUrl: string;
   meetingUrl?: string;
   posterUrl: string;
@@ -82,9 +83,9 @@ export type EventInput = {
   date: string;
   title: string;
   venue: string;
+  mapUrl?: string;
   ticketUrl: string;
   meetingUrl?: string;
   priorityClass: PriorityClass;
   status: CmsEventStatus;
 };
-

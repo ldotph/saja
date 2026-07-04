@@ -11,6 +11,7 @@ import { ADMIN_BASE_PATH } from "@/lib/cms/constants";
 import {
   createDraftFromSubmission,
   createEvent,
+  deleteEvent,
   parsePriorityClass,
   setEventStatus,
   setSubmissionStatus,
@@ -73,6 +74,7 @@ export async function rejectSubmissionAction(formData: FormData) {
 
 export async function createEventAction(formData: FormData) {
   const ticketUrl = getRequiredString(formData, "ticketUrl", "ссылка на билеты");
+  const mapUrl = getString(formData, "mapUrl");
   const meetingUrl = getString(formData, "meetingUrl");
   const poster = formData.get("poster");
   const fileError = validateImageFile(poster instanceof File ? poster : null);
@@ -95,12 +97,21 @@ export async function createEventAction(formData: FormData) {
     }
   }
 
+  if (mapUrl) {
+    const mapUrlError = validateUrl(mapUrl, "Ссылка на карту клуба");
+
+    if (mapUrlError) {
+      throw new Error(mapUrlError);
+    }
+  }
+
   await createEvent(
     {
       city: getRequiredString(formData, "city", "город"),
       date: getRequiredString(formData, "date", "дата"),
       title: getRequiredString(formData, "title", "название события"),
       venue: getRequiredString(formData, "venue", "клуб"),
+      mapUrl: normalizeOptionalString(mapUrl),
       ticketUrl,
       meetingUrl: normalizeOptionalString(meetingUrl),
       priorityClass: parsePriorityClass(formData.get("priorityClass")),
@@ -116,6 +127,7 @@ export async function createEventAction(formData: FormData) {
 
 export async function updateEventAction(formData: FormData) {
   const ticketUrl = getRequiredString(formData, "ticketUrl", "ссылка на билеты");
+  const mapUrl = getString(formData, "mapUrl");
   const meetingUrl = getString(formData, "meetingUrl");
   const poster = formData.get("poster");
   const ticketUrlError = validateUrl(ticketUrl, "Ссылка на билеты");
@@ -129,6 +141,14 @@ export async function updateEventAction(formData: FormData) {
 
     if (meetingUrlError) {
       throw new Error(meetingUrlError);
+    }
+  }
+
+  if (mapUrl) {
+    const mapUrlError = validateUrl(mapUrl, "Ссылка на карту клуба");
+
+    if (mapUrlError) {
+      throw new Error(mapUrlError);
     }
   }
 
@@ -147,6 +167,7 @@ export async function updateEventAction(formData: FormData) {
       date: getRequiredString(formData, "date", "дата"),
       title: getRequiredString(formData, "title", "название события"),
       venue: getRequiredString(formData, "venue", "клуб"),
+      mapUrl: normalizeOptionalString(mapUrl),
       ticketUrl,
       meetingUrl: normalizeOptionalString(meetingUrl),
       priorityClass: parsePriorityClass(formData.get("priorityClass")),
@@ -172,6 +193,13 @@ export async function publishEventAction(formData: FormData) {
 
 export async function hideEventAction(formData: FormData) {
   await setEventStatus(getRequiredString(formData, "id", "афиша"), "hidden");
+  revalidatePath("/");
+  revalidatePath(ADMIN_BASE_PATH);
+  redirect(ADMIN_BASE_PATH);
+}
+
+export async function deleteEventAction(formData: FormData) {
+  await deleteEvent(getRequiredString(formData, "id", "афиша"));
   revalidatePath("/");
   revalidatePath(ADMIN_BASE_PATH);
   redirect(ADMIN_BASE_PATH);

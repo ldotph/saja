@@ -55,8 +55,8 @@ async function readStore(): Promise<CmsStore> {
   const parsedStore = JSON.parse(rawStore) as Partial<CmsStore>;
 
   return {
-    events: parsedStore.events ?? [],
-    submissions: parsedStore.submissions ?? []
+    events: (parsedStore.events ?? []).map(normalizeEvent),
+    submissions: (parsedStore.submissions ?? []).map(normalizeSubmission)
   };
 }
 
@@ -76,6 +76,33 @@ function normalizeOptionalUrl(url: string | undefined) {
   const trimmedUrl = url?.trim();
 
   return trimmedUrl ? trimmedUrl : undefined;
+}
+
+function normalizeUploadUrl(url: string) {
+  if (url.startsWith("/api/uploads/")) {
+    return url;
+  }
+
+  if (url.startsWith("/uploads/")) {
+    return `/api${url}`;
+  }
+
+  return url;
+}
+
+function normalizeEvent(event: CmsEvent) {
+  return {
+    ...event,
+    posterUrl: normalizeUploadUrl(event.posterUrl),
+    mapUrl: normalizeOptionalUrl(event.mapUrl)
+  };
+}
+
+function normalizeSubmission(submission: Submission) {
+  return {
+    ...submission,
+    posterUrl: normalizeUploadUrl(submission.posterUrl)
+  };
 }
 
 function buildEventActions(event: CmsEvent): EventRecord["actions"] {
@@ -106,6 +133,7 @@ function eventToRecord(event: CmsEvent): EventRecord {
     dateLabel: event.dateLabel,
     city: event.city,
     venue: event.venue,
+    mapUrl: event.mapUrl,
     poster: event.posterUrl,
     priorityClass: event.priorityClass,
     actions: buildEventActions(event)
@@ -118,6 +146,12 @@ function isExpiredSubmission(submission: Submission) {
     createdAt + SUBMISSION_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
   return Date.now() > expiresAt;
+}
+
+function isPastEvent(event: CmsEvent) {
+  const eventEnd = new Date(`${event.date}T23:59:59+03:00`).getTime();
+
+  return Date.now() > eventEnd;
 }
 
 async function pruneExpiredSubmissions(store: CmsStore) {
@@ -183,7 +217,11 @@ async function saveUpload(file: File, prefix: string) {
   await fs.mkdir(uploadDir, { recursive: true });
   await fs.writeFile(filePath, buffer);
 
-  return `/uploads/${fileName}`;
+  return `/api/uploads/${fileName}`;
+}
+
+export function getUploadFilePath(fileName: string) {
+  return path.join(uploadDir, path.basename(fileName));
 }
 
 export async function listSubmissions() {
@@ -214,7 +252,7 @@ export async function listPublishedEventRecords() {
   const events = await listEvents();
 
   return events
-    .filter((event) => event.status === "published")
+    .filter((event) => event.status === "published" && !isPastEvent(event))
     .map(eventToRecord);
 }
 
@@ -245,6 +283,7 @@ export async function createEvent(input: EventInput, poster: File) {
   const event: CmsEvent = {
     id: randomUUID(),
     ...input,
+    mapUrl: normalizeOptionalUrl(input.mapUrl),
     meetingUrl: normalizeOptionalUrl(input.meetingUrl),
     dateLabel: formatDateLabel(input.date),
     posterUrl,
@@ -275,6 +314,7 @@ export async function updateEvent(
   event.dateLabel = formatDateLabel(input.date);
   event.title = input.title;
   event.venue = input.venue;
+  event.mapUrl = normalizeOptionalUrl(input.mapUrl);
   event.ticketUrl = input.ticketUrl;
   event.meetingUrl = normalizeOptionalUrl(input.meetingUrl);
   event.priorityClass = input.priorityClass;
@@ -310,6 +350,7 @@ export async function createDraftFromSubmission(submissionId: string) {
     dateLabel: formatDateLabel(submission.date),
     city: submission.city,
     venue: submission.venue,
+    mapUrl: undefined,
     ticketUrl: submission.ticketUrl,
     meetingUrl: submission.meetingUrl,
     posterUrl: submission.posterUrl,
@@ -355,6 +396,19 @@ export async function setEventStatus(
     }
   }
 
+  await writeStore(store);
+}
+
+export async function deleteEvent(eventId: string) {
+  const store = await readStore();
+  const event = store.events.find((item) => item.id === eventId);
+
+  if (!event) {
+    throw new Error("Афиша не найдена.");
+  }
+
+  event.status = "hidden";
+  event.updatedAt = new Date().toISOString();
   await writeStore(store);
 }
 
