@@ -11,8 +11,8 @@ export type EventCardProps = {
   dateLabel: string;
   city: string;
   venue: string;
-  mapUrl: string;
-  poster: StaticImageData;
+  mapUrl?: string;
+  poster: StaticImageData | string;
   priorityClass: 1 | 2 | 3;
   actions: EventAction[];
 };
@@ -41,9 +41,13 @@ export function EventCard({
         <div className="card__date">{dateLabel}</div>
         <div className="card__venue">
           {city},{" "}
-          <a href={mapUrl} target="_blank" rel="noreferrer noopener">
-            {venue}
-          </a>
+          {mapUrl ? (
+            <a href={mapUrl} target="_blank" rel="noreferrer noopener">
+              {venue}
+            </a>
+          ) : (
+            <span>{venue}</span>
+          )}
         </div>
         <div className="card__actions">
           {actions.length > 0 ? (

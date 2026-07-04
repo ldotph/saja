@@ -2,11 +2,13 @@ import Image from "next/image";
 import logo from "../assets/logos/logofulln.png";
 import { ContactForm } from "@/components/contact-form";
 import { EventFilters } from "@/components/event-filters";
-import { cityFilterOptions, getSortedEvents } from "@/data/events";
+import { getCityOptions, getSortedEvents } from "@/data/events";
 
-export default function HomePage() {
-  const events = getSortedEvents();
-  const cities = cityFilterOptions;
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const events = await getSortedEvents();
+  const cities = getCityOptions(events);
 
   return (
     <main className="page-shell">
@@ -53,7 +55,7 @@ export default function HomePage() {
           <h2 id="contact-title">Оставить заявку на размещение афиши</h2>
           <p className="section-copy">
             Заполните форму, приложите изображение афиши и оставьте контакт для
-            связи. Заявка отправляется напрямую в Telegram после подключения бота.
+            связи. Заявка попадет в панель администратора и станет черновиком афиши.
           </p>
         </div>
         <ContactForm />

@@ -3,9 +3,13 @@
 import { FormEvent, useState } from "react";
 
 type FormErrors = {
-  name?: string;
-  contact?: string;
-  message?: string;
+  city?: string;
+  date?: string;
+  title?: string;
+  venue?: string;
+  ticketUrl?: string;
+  meetingUrl?: string;
+  telegramId?: string;
   file?: string;
   consent?: string;
 };
@@ -21,7 +25,7 @@ export function ContactForm() {
   }>({
     tone: "idle",
     message:
-      "Форма готова к работе. Отправка заработает сразу после подключения Telegram-бота."
+      "Заполните поля, и заявка попадет в очередь на рассмотрение."
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,22 +35,42 @@ export function ContactForm() {
     const form = event.currentTarget;
     const formData = new FormData(form);
     const nextErrors: FormErrors = {};
-    const name = String(formData.get("name") ?? "").trim();
-    const contact = String(formData.get("contact") ?? "").trim();
-    const message = String(formData.get("message") ?? "").trim();
+    const city = String(formData.get("city") ?? "").trim();
+    const date = String(formData.get("date") ?? "").trim();
+    const title = String(formData.get("title") ?? "").trim();
+    const venue = String(formData.get("venue") ?? "").trim();
+    const ticketUrl = String(formData.get("ticketUrl") ?? "").trim();
+    const meetingUrl = String(formData.get("meetingUrl") ?? "").trim();
+    const telegramId = String(formData.get("telegramId") ?? "").trim();
     const consent = formData.get("consent");
     const file = formData.get("poster");
 
-    if (!name) {
-      nextErrors.name = "Укажите имя или название проекта.";
+    if (!city) {
+      nextErrors.city = "Выберите город.";
     }
 
-    if (!contact) {
-      nextErrors.contact = "Укажите email или телефон для связи.";
+    if (!date) {
+      nextErrors.date = "Укажите дату концерта.";
     }
 
-    if (!message || message.length < 20) {
-      nextErrors.message = "Сообщение должно содержать минимум 20 символов.";
+    if (!title) {
+      nextErrors.title = "Укажите название события.";
+    }
+
+    if (!venue) {
+      nextErrors.venue = "Укажите клуб или площадку.";
+    }
+
+    if (!ticketUrl) {
+      nextErrors.ticketUrl = "Укажите ссылку на билеты.";
+    }
+
+    if (meetingUrl && !/^https?:\/\//.test(meetingUrl)) {
+      nextErrors.meetingUrl = "Ссылка должна начинаться с http:// или https://.";
+    }
+
+    if (!/^@?[a-zA-Z0-9_]{5,32}$/.test(telegramId)) {
+      nextErrors.telegramId = "Укажите Telegram ID в формате @username.";
     }
 
     if (!(file instanceof File) || file.size === 0) {
@@ -116,47 +140,114 @@ export function ContactForm() {
     <form className="contact-form" onSubmit={handleSubmit} noValidate>
       <div className="form__grid">
         <div className="form__field">
-          <label className="form__label" htmlFor="name">
-            Имя или проект
+          <label className="form__label" htmlFor="city">
+            Город
           </label>
-          <input
+          <select
             className="form__input"
-            id="name"
-            name="name"
-            type="text"
-            placeholder="Например, группа Север"
-          />
-          {errors.name ? <div className="form__error">{errors.name}</div> : null}
+            id="city"
+            name="city"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Выберите город
+            </option>
+            <option value="Москва">Москва</option>
+            <option value="Санкт-Петербург">Санкт-Петербург</option>
+            <option value="Воронеж">Воронеж</option>
+            <option value="Нижний Новгород">Нижний Новгород</option>
+          </select>
+          {errors.city ? <div className="form__error">{errors.city}</div> : null}
         </div>
 
         <div className="form__field">
-          <label className="form__label" htmlFor="contact">
-            Email или телефон
+          <label className="form__label" htmlFor="date">
+            Дата
           </label>
           <input
             className="form__input"
-            id="contact"
-            name="contact"
-            type="text"
-            placeholder="name@mail.ru или +7..."
+            id="date"
+            name="date"
+            type="date"
           />
-          {errors.contact ? (
-            <div className="form__error">{errors.contact}</div>
+          {errors.date ? <div className="form__error">{errors.date}</div> : null}
+        </div>
+
+        <div className="form__field">
+          <label className="form__label" htmlFor="title">
+            Название события
+          </label>
+          <input
+            className="form__input"
+            id="title"
+            name="title"
+            type="text"
+            placeholder="Например, Аферист / Supruga"
+          />
+          {errors.title ? (
+            <div className="form__error">{errors.title}</div>
+          ) : null}
+        </div>
+
+        <div className="form__field">
+          <label className="form__label" htmlFor="venue">
+            Клуб
+          </label>
+          <input
+            className="form__input"
+            id="venue"
+            name="venue"
+            type="text"
+            placeholder="Название площадки"
+          />
+          {errors.venue ? <div className="form__error">{errors.venue}</div> : null}
+        </div>
+
+        <div className="form__field">
+          <label className="form__label" htmlFor="ticketUrl">
+            Ссылка на билеты
+          </label>
+          <input
+            className="form__input"
+            id="ticketUrl"
+            name="ticketUrl"
+            type="url"
+            placeholder="https://..."
+          />
+          {errors.ticketUrl ? (
+            <div className="form__error">{errors.ticketUrl}</div>
+          ) : null}
+        </div>
+
+        <div className="form__field">
+          <label className="form__label" htmlFor="meetingUrl">
+            Встреча VK
+          </label>
+          <input
+            className="form__input"
+            id="meetingUrl"
+            name="meetingUrl"
+            type="url"
+            placeholder="https://vk.ru/... если есть"
+          />
+          {errors.meetingUrl ? (
+            <div className="form__error">{errors.meetingUrl}</div>
           ) : null}
         </div>
 
         <div className="form__field form__field--full">
-          <label className="form__label" htmlFor="message">
-            Сообщение
+          <label className="form__label" htmlFor="telegramId">
+            Telegram ID для обратной связи
           </label>
-          <textarea
-            className="form__textarea"
-            id="message"
-            name="message"
-            placeholder="Коротко расскажите о концерте, городе, площадке и приложенной афише."
+          <input
+            className="form__input"
+            id="telegramId"
+            name="telegramId"
+            type="text"
+            placeholder="@username"
           />
-          {errors.message ? (
-            <div className="form__error">{errors.message}</div>
+          {errors.telegramId ? (
+            <div className="form__error">{errors.telegramId}</div>
           ) : null}
         </div>
 

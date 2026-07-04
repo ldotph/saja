@@ -1,118 +1,100 @@
 import { NextResponse } from "next/server";
+import { addSubmission, validateImageFile, validateUrl } from "@/lib/cms/storage";
+import { CITY_OPTIONS } from "@/lib/cms/constants";
 
-const ACCEPTED_FILE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+export const runtime = "nodejs";
+
+function requiredString(formData: FormData, field: string) {
+  return String(formData.get(field) ?? "").trim();
+}
+
+function validateTelegramId(telegramId: string) {
+  return /^@?[a-zA-Z0-9_]{5,32}$/.test(telegramId);
+}
 
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const name = String(formData.get("name") ?? "").trim();
-  const contact = String(formData.get("contact") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
+  const city = requiredString(formData, "city");
+  const date = requiredString(formData, "date");
+  const title = requiredString(formData, "title");
+  const venue = requiredString(formData, "venue");
+  const ticketUrl = requiredString(formData, "ticketUrl");
+  const meetingUrl = requiredString(formData, "meetingUrl");
+  const telegramId = requiredString(formData, "telegramId");
   const consent = formData.get("consent");
   const poster = formData.get("poster");
 
-  if (!name || !contact || !message || !consent) {
+  if (!city || !date || !title || !venue || !ticketUrl || !telegramId || !consent) {
     return NextResponse.json(
       { message: "Заполните обязательные поля формы." },
       { status: 400 }
     );
   }
 
-  if (!(poster instanceof File) || poster.size === 0) {
+  if (!CITY_OPTIONS.includes(city as (typeof CITY_OPTIONS)[number])) {
     return NextResponse.json(
-      { message: "Прикрепите изображение афиши." },
+      { message: "Выберите город из списка." },
       { status: 400 }
     );
   }
 
-  if (!ACCEPTED_FILE_TYPES.has(poster.type) || poster.size > MAX_FILE_SIZE) {
+  if (Number.isNaN(new Date(date).getTime())) {
     return NextResponse.json(
-      { message: "Используйте JPG, PNG или WEBP размером до 10 МБ." },
+      { message: "Укажите корректную дату события." },
       { status: 400 }
     );
   }
 
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  const messageThreadId = process.env.TELEGRAM_MESSAGE_THREAD_ID;
+  const ticketUrlError = validateUrl(ticketUrl, "Ссылка на билеты");
 
-  if (!botToken || !chatId) {
+  if (ticketUrlError) {
     return NextResponse.json(
-      {
-        message:
-          "Форма готова, но Telegram-бот ещё не подключён. Добавьте TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID в .env.local и перезапустите приложение."
-      },
-      { status: 503 }
+      { message: ticketUrlError },
+      { status: 400 }
     );
   }
 
-  try {
-    const textPayload = new URLSearchParams({
-      chat_id: chatId,
-      text: [
-        "Новая заявка с сайта концертного агентства.",
-        "",
-        `Имя / проект: ${name}`,
-        `Контакт: ${contact}`,
-        "",
-        "Сообщение:",
-        message
-      ].join("\n")
-    });
+  if (meetingUrl) {
+    const meetingUrlError = validateUrl(meetingUrl, "Ссылка на встречу");
 
-    if (messageThreadId) {
-      textPayload.set("message_thread_id", messageThreadId);
-    }
-
-    const textResponse = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendMessage`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: textPayload.toString()
-      }
-    );
-
-    if (!textResponse.ok) {
+    if (meetingUrlError) {
       return NextResponse.json(
-        { message: "Telegram не принял текст заявки. Проверьте токен и chat id." },
-        { status: 502 }
+        { message: meetingUrlError },
+        { status: 400 }
       );
     }
+  }
 
-    const telegramForm = new FormData();
-    telegramForm.set("chat_id", chatId);
-    telegramForm.set("caption", "Афиша к новой заявке");
-    telegramForm.set("document", poster, poster.name || "poster");
-
-    if (messageThreadId) {
-      telegramForm.set("message_thread_id", messageThreadId);
-    }
-
-    const fileResponse = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendDocument`,
-      {
-        method: "POST",
-        body: telegramForm
-      }
-    );
-
-    if (!fileResponse.ok) {
-      return NextResponse.json(
-        { message: "Telegram не принял файл афиши. Проверьте настройки бота." },
-        { status: 502 }
-      );
-    }
-
-    return NextResponse.json({
-      message: "Заявка отправлена в Telegram. Мы свяжемся с вами по указанному контакту."
-    });
-  } catch {
+  if (!validateTelegramId(telegramId)) {
     return NextResponse.json(
-      { message: "Не удалось отправить заявку в Telegram. Попробуйте позже." },
-      { status: 500 }
+      { message: "Укажите Telegram ID в формате @username." },
+      { status: 400 }
     );
   }
+
+  const fileError = validateImageFile(poster instanceof File ? poster : null);
+
+  if (fileError || !(poster instanceof File)) {
+    return NextResponse.json(
+      { message: fileError ?? "Прикрепите изображение афиши." },
+      { status: 400 }
+    );
+  }
+
+  await addSubmission(
+    {
+      city,
+      date,
+      title,
+      venue,
+      ticketUrl,
+      meetingUrl,
+      telegramId
+    },
+    poster
+  );
+
+  return NextResponse.json({
+    message: "Заявка отправлена. Мы увидим ее в панели администратора и свяжемся с вами в Telegram."
+  });
 }

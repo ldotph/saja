@@ -1,0 +1,381 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import type {
+  CmsEvent,
+  CmsStore,
+  EventInput,
+  EventRecord,
+  PriorityClass,
+  Submission,
+  SubmissionInput,
+  SubmissionStatus
+} from "@/lib/cms/types";
+
+const ACCEPTED_FILE_TYPES = new Map([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"]
+]);
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const SUBMISSION_RETENTION_DAYS = Number(
+  process.env.SUBMISSION_RETENTION_DAYS ?? 60
+);
+
+const storageDir = process.env.SAJA_STORAGE_DIR
+  ? path.resolve(process.env.SAJA_STORAGE_DIR)
+  : path.join(process.cwd(), "storage");
+
+const storeFile = path.join(storageDir, "cms.json");
+
+const uploadDir = process.env.SAJA_UPLOAD_DIR
+  ? path.resolve(process.env.SAJA_UPLOAD_DIR)
+  : path.join(process.cwd(), "public", "uploads");
+
+const emptyStore: CmsStore = {
+  events: [],
+  submissions: []
+};
+
+async function ensureStorage() {
+  await fs.mkdir(storageDir, { recursive: true });
+  await fs.mkdir(uploadDir, { recursive: true });
+
+  try {
+    await fs.access(storeFile);
+  } catch {
+    await writeStore(emptyStore);
+  }
+}
+
+async function readStore(): Promise<CmsStore> {
+  await ensureStorage();
+  const rawStore = await fs.readFile(storeFile, "utf8");
+  const parsedStore = JSON.parse(rawStore) as Partial<CmsStore>;
+
+  return {
+    events: parsedStore.events ?? [],
+    submissions: parsedStore.submissions ?? []
+  };
+}
+
+async function writeStore(store: CmsStore) {
+  await fs.mkdir(storageDir, { recursive: true });
+  await fs.writeFile(storeFile, JSON.stringify(store, null, 2), "utf8");
+}
+
+function formatDateLabel(date: string) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long"
+  }).format(new Date(`${date}T12:00:00+03:00`));
+}
+
+function normalizeOptionalUrl(url: string | undefined) {
+  const trimmedUrl = url?.trim();
+
+  return trimmedUrl ? trimmedUrl : undefined;
+}
+
+function buildEventActions(event: CmsEvent): EventRecord["actions"] {
+  const actions: EventRecord["actions"] = [
+    {
+      label: "Купить билет",
+      href: event.ticketUrl,
+      variant: "primary"
+    }
+  ];
+
+  if (event.meetingUrl) {
+    actions.push({
+      label: "Встреча VK",
+      href: event.meetingUrl,
+      variant: "secondary"
+    });
+  }
+
+  return actions;
+}
+
+function eventToRecord(event: CmsEvent): EventRecord {
+  return {
+    id: event.id,
+    title: event.title,
+    date: event.date,
+    dateLabel: event.dateLabel,
+    city: event.city,
+    venue: event.venue,
+    poster: event.posterUrl,
+    priorityClass: event.priorityClass,
+    actions: buildEventActions(event)
+  };
+}
+
+function isExpiredSubmission(submission: Submission) {
+  const createdAt = new Date(submission.createdAt).getTime();
+  const expiresAt =
+    createdAt + SUBMISSION_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+  return Date.now() > expiresAt;
+}
+
+async function pruneExpiredSubmissions(store: CmsStore) {
+  const activeSubmissions = store.submissions.filter(
+    (submission) => !isExpiredSubmission(submission)
+  );
+
+  if (activeSubmissions.length === store.submissions.length) {
+    return store;
+  }
+
+  const nextStore = {
+    ...store,
+    submissions: activeSubmissions
+  };
+
+  await writeStore(nextStore);
+  return nextStore;
+}
+
+export function validateImageFile(file: File | null | undefined) {
+  if (!(file instanceof File) || file.size === 0) {
+    return "Прикрепите изображение афиши.";
+  }
+
+  if (!ACCEPTED_FILE_TYPES.has(file.type)) {
+    return "Допустимы файлы JPG, PNG или WEBP.";
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    return "Размер файла не должен превышать 10 МБ.";
+  }
+
+  return null;
+}
+
+export function validateUrl(value: string, fieldName: string) {
+  try {
+    const url = new URL(value);
+
+    if (!["http:", "https:"].includes(url.protocol)) {
+      return `${fieldName}: используйте ссылку с http:// или https://.`;
+    }
+
+    return null;
+  } catch {
+    return `${fieldName}: укажите корректную ссылку.`;
+  }
+}
+
+async function saveUpload(file: File, prefix: string) {
+  const fileTypeError = validateImageFile(file);
+
+  if (fileTypeError) {
+    throw new Error(fileTypeError);
+  }
+
+  const extension = ACCEPTED_FILE_TYPES.get(file.type) ?? "jpg";
+  const fileName = `${prefix}-${Date.now()}-${randomUUID()}.${extension}`;
+  const filePath = path.join(uploadDir, fileName);
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  await fs.mkdir(uploadDir, { recursive: true });
+  await fs.writeFile(filePath, buffer);
+
+  return `/uploads/${fileName}`;
+}
+
+export async function listSubmissions() {
+  const store = await pruneExpiredSubmissions(await readStore());
+
+  return [...store.submissions].sort(
+    (left, right) =>
+      new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+  );
+}
+
+export async function listEvents() {
+  const store = await readStore();
+
+  return [...store.events].sort((left, right) => {
+    const dateDiff =
+      new Date(left.date).getTime() - new Date(right.date).getTime();
+
+    if (dateDiff !== 0) {
+      return dateDiff;
+    }
+
+    return left.priorityClass - right.priorityClass;
+  });
+}
+
+export async function listPublishedEventRecords() {
+  const events = await listEvents();
+
+  return events
+    .filter((event) => event.status === "published")
+    .map(eventToRecord);
+}
+
+export async function addSubmission(input: SubmissionInput, poster: File) {
+  const store = await pruneExpiredSubmissions(await readStore());
+  const now = new Date().toISOString();
+  const posterUrl = await saveUpload(poster, "submission");
+  const submission: Submission = {
+    id: randomUUID(),
+    ...input,
+    meetingUrl: normalizeOptionalUrl(input.meetingUrl),
+    posterUrl,
+    status: "new",
+    createdAt: now,
+    updatedAt: now
+  };
+
+  store.submissions.unshift(submission);
+  await writeStore(store);
+
+  return submission;
+}
+
+export async function createEvent(input: EventInput, poster: File) {
+  const store = await readStore();
+  const now = new Date().toISOString();
+  const posterUrl = await saveUpload(poster, "event");
+  const event: CmsEvent = {
+    id: randomUUID(),
+    ...input,
+    meetingUrl: normalizeOptionalUrl(input.meetingUrl),
+    dateLabel: formatDateLabel(input.date),
+    posterUrl,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  store.events.unshift(event);
+  await writeStore(store);
+
+  return event;
+}
+
+export async function updateEvent(
+  eventId: string,
+  input: EventInput,
+  poster?: File
+) {
+  const store = await readStore();
+  const event = store.events.find((item) => item.id === eventId);
+
+  if (!event) {
+    throw new Error("Афиша не найдена.");
+  }
+
+  event.city = input.city;
+  event.date = input.date;
+  event.dateLabel = formatDateLabel(input.date);
+  event.title = input.title;
+  event.venue = input.venue;
+  event.ticketUrl = input.ticketUrl;
+  event.meetingUrl = normalizeOptionalUrl(input.meetingUrl);
+  event.priorityClass = input.priorityClass;
+  event.status = input.status;
+  event.updatedAt = new Date().toISOString();
+
+  if (poster && poster.size > 0) {
+    event.posterUrl = await saveUpload(poster, "event");
+  }
+
+  await writeStore(store);
+
+  return event;
+}
+
+export async function createDraftFromSubmission(submissionId: string) {
+  const store = await pruneExpiredSubmissions(await readStore());
+  const submission = store.submissions.find((item) => item.id === submissionId);
+
+  if (!submission) {
+    throw new Error("Заявка не найдена.");
+  }
+
+  if (submission.eventDraftId) {
+    return submission.eventDraftId;
+  }
+
+  const now = new Date().toISOString();
+  const draft: CmsEvent = {
+    id: randomUUID(),
+    title: submission.title,
+    date: submission.date,
+    dateLabel: formatDateLabel(submission.date),
+    city: submission.city,
+    venue: submission.venue,
+    ticketUrl: submission.ticketUrl,
+    meetingUrl: submission.meetingUrl,
+    posterUrl: submission.posterUrl,
+    priorityClass: 2,
+    status: "draft",
+    sourceSubmissionId: submission.id,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  submission.status = "draft_created";
+  submission.eventDraftId = draft.id;
+  submission.updatedAt = now;
+  store.events.unshift(draft);
+  await writeStore(store);
+
+  return draft.id;
+}
+
+export async function setEventStatus(
+  eventId: string,
+  status: CmsEvent["status"]
+) {
+  const store = await readStore();
+  const event = store.events.find((item) => item.id === eventId);
+
+  if (!event) {
+    throw new Error("Афиша не найдена.");
+  }
+
+  const now = new Date().toISOString();
+  event.status = status;
+  event.updatedAt = now;
+
+  if (event.sourceSubmissionId && status === "published") {
+    const submission = store.submissions.find(
+      (item) => item.id === event.sourceSubmissionId
+    );
+
+    if (submission) {
+      submission.status = "published";
+      submission.updatedAt = now;
+    }
+  }
+
+  await writeStore(store);
+}
+
+export async function setSubmissionStatus(
+  submissionId: string,
+  status: SubmissionStatus
+) {
+  const store = await pruneExpiredSubmissions(await readStore());
+  const submission = store.submissions.find((item) => item.id === submissionId);
+
+  if (!submission) {
+    throw new Error("Заявка не найдена.");
+  }
+
+  submission.status = status;
+  submission.updatedAt = new Date().toISOString();
+  await writeStore(store);
+}
+
+export function parsePriorityClass(value: FormDataEntryValue | null) {
+  const parsedValue = Number(value);
+
+  return ([1, 2, 3].includes(parsedValue) ? parsedValue : 2) as PriorityClass;
+}

@@ -1,34 +1,11 @@
+import { listPublishedEventRecords } from "@/lib/cms/storage";
+import { CITY_OPTIONS } from "@/lib/cms/constants";
+import type { EventRecord } from "@/lib/cms/types";
 import firstPoster from "../assets/posters/1.jpg";
 import secondPoster from "../assets/posters/2.jpg";
 import thirdPoster from "../assets/posters/3.jpg";
 
-type PriorityClass = 1 | 2 | 3;
-
-type EventAction = {
-  label: "Купить билет" | "Встреча VK";
-  href: string;
-  variant: "primary" | "secondary";
-};
-
-export type EventRecord = {
-  id: string;
-  title: string;
-  date: string;
-  dateLabel: string;
-  city: string;
-  venue: string;
-  mapUrl: string;
-  poster: typeof firstPoster;
-  priorityClass: PriorityClass;
-  actions: EventAction[];
-};
-
-export const cityFilterOptions = [
-  "Москва",
-  "Санкт-Петербург",
-  "Воронеж",
-  "Нижний Новгород"
-] as const;
+export const cityFilterOptions = CITY_OPTIONS;
 
 export const eventsConfig: EventRecord[] = [
   {
@@ -102,8 +79,8 @@ export const eventsConfig: EventRecord[] = [
   }
 ];
 
-export function getSortedEvents() {
-  return [...eventsConfig].sort((left, right) => {
+function sortEvents(events: EventRecord[]) {
+  return [...events].sort((left, right) => {
     const dateDiff =
       new Date(left.date).getTime() - new Date(right.date).getTime();
 
@@ -113,4 +90,15 @@ export function getSortedEvents() {
 
     return left.priorityClass - right.priorityClass;
   });
+}
+
+export async function getSortedEvents() {
+  const cmsEvents = await listPublishedEventRecords();
+
+  return sortEvents([...eventsConfig, ...cmsEvents]);
+}
+
+export function getCityOptions(events: EventRecord[]) {
+  const eventCities = events.map((event) => event.city);
+  return [...new Set([...CITY_OPTIONS, ...eventCities])];
 }

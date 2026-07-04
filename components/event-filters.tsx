@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { EventRecord } from "@/data/events";
+import type { EventRecord } from "@/lib/cms/types";
 import { EventCard } from "@/components/event-card";
 
 type EventFiltersProps = {
-  cities: string[];
+  cities: readonly string[];
   events: EventRecord[];
 };
 
