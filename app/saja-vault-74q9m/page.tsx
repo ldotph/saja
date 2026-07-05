@@ -33,7 +33,8 @@ const submissionStatusLabels: Record<Submission["status"], string> = {
 const eventStatusLabels: Record<CmsEvent["status"], string> = {
   draft: "Черновик",
   published: "Опубликовано",
-  hidden: "Скрыто"
+  hidden: "Скрыто",
+  archived: "Удалено с сайта"
 };
 
 function formatAdminDate(date: string) {
@@ -340,6 +341,55 @@ function EventCard({ event }: { event: CmsEvent }) {
   );
 }
 
+function ArchivedEventCard({ event }: { event: CmsEvent }) {
+  const displayTitle = event.title || event.artists;
+
+  return (
+    <article className="admin-card">
+      <img
+        className="admin-card__poster"
+        src={event.posterUrl}
+        alt={`Афиша: ${displayTitle}`}
+      />
+      <div className="admin-card__content">
+        <div className="admin-card__meta">
+          <span>{eventStatusLabels[event.status]}</span>
+          <span>{event.dateLabel}</span>
+        </div>
+        <h3>{displayTitle}</h3>
+        {event.title ? (
+          <div className="admin-artists">{event.artists}</div>
+        ) : null}
+        <dl className="admin-details">
+          <div>
+            <dt>Город</dt>
+            <dd>{event.city}</dd>
+          </div>
+          <div>
+            <dt>Дата</dt>
+            <dd>{event.date}</dd>
+          </div>
+          <div>
+            <dt>Клуб</dt>
+            <dd>{event.venue}</dd>
+          </div>
+        </dl>
+        <div className="admin-note">
+          Афиша удалена с сайта и хранится здесь как архивная запись.
+        </div>
+        <div className="admin-actions">
+          <form action={returnEventToDraftAction}>
+            <input name="id" type="hidden" value={event.id} />
+            <button className="admin-button" type="submit">
+              Вернуть в черновик
+            </button>
+          </form>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function CreateEventForm() {
   return (
     <form className="admin-form" action={createEventAction}>
@@ -445,8 +495,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const processedSubmissions = submissions.filter(
     (submission) => submission.status !== "new"
   );
-  const draftEvents = events.filter((event) => event.status !== "published");
+  const draftEvents = events.filter(
+    (event) => event.status === "draft" || event.status === "hidden"
+  );
   const publishedEvents = events.filter((event) => event.status === "published");
+  const archivedEvents = events.filter((event) => event.status === "archived");
+  const processedItemsCount = processedSubmissions.length + archivedEvents.length;
 
   return (
     <main className="admin-shell">
@@ -532,17 +586,25 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <section className="admin-section" aria-labelledby="processed-submissions-title">
         <details className="admin-collapsible">
           <summary>
-            <span id="processed-submissions-title">Обработанные заявки</span>
-            <strong>{processedSubmissions.length}</strong>
+            <span id="processed-submissions-title">
+              Показать обработанные заявки
+            </span>
+            <strong>{processedItemsCount}</strong>
           </summary>
           <div className="admin-list">
             {processedSubmissions.length > 0 ? (
               processedSubmissions.map((submission) => (
                 <SubmissionCard key={submission.id} submission={submission} />
               ))
-            ) : (
+            ) : null}
+            {archivedEvents.length > 0 ? (
+              archivedEvents.map((event) => (
+                <ArchivedEventCard key={event.id} event={event} />
+              ))
+            ) : null}
+            {processedItemsCount === 0 ? (
               <div className="empty-state">Обработанных заявок пока нет.</div>
-            )}
+            ) : null}
           </div>
         </details>
       </section>

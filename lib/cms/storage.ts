@@ -428,8 +428,21 @@ export async function deleteEvent(eventId: string) {
     throw new Error("Афиша не найдена.");
   }
 
-  event.status = "hidden";
-  event.updatedAt = new Date().toISOString();
+  const now = new Date().toISOString();
+  event.status = "archived";
+  event.updatedAt = now;
+
+  if (event.sourceSubmissionId) {
+    const submission = store.submissions.find(
+      (item) => item.id === event.sourceSubmissionId
+    );
+
+    if (submission) {
+      submission.status = "published";
+      submission.updatedAt = now;
+    }
+  }
+
   await writeStore(store);
 }
 

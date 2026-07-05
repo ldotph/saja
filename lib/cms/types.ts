@@ -22,7 +22,7 @@ export type EventRecord = {
   actions: EventAction[];
 };
 
-export type CmsEventStatus = "draft" | "published" | "hidden";
+export type CmsEventStatus = "draft" | "published" | "hidden" | "archived";
 
 export type CmsEvent = {
   id: string;
