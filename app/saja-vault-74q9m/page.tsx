@@ -286,21 +286,21 @@ function EventCard({ event }: { event: CmsEvent }) {
               <input name="venue" type="text" required defaultValue={event.venue} />
             </label>
             <label className="admin-field">
-              <span>Ссылка на билеты</span>
-              <input
-                name="ticketUrl"
-                type="url"
-                required
-                defaultValue={event.ticketUrl}
-              />
-            </label>
-            <label className="admin-field">
               <span>Карта клуба</span>
               <input
                 name="mapUrl"
                 type="url"
                 placeholder="https://yandex.ru/maps/..."
                 defaultValue={event.mapUrl ?? ""}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Ссылка на билеты</span>
+              <input
+                name="ticketUrl"
+                type="url"
+                required
+                defaultValue={event.ticketUrl}
               />
             </label>
             <label className="admin-field">
@@ -432,12 +432,12 @@ function CreateEventForm() {
         <input name="venue" type="text" required />
       </label>
       <label className="admin-field">
-        <span>Ссылка на билеты</span>
-        <input name="ticketUrl" type="url" placeholder="https://..." required />
-      </label>
-      <label className="admin-field">
         <span>Карта клуба</span>
         <input name="mapUrl" type="url" placeholder="https://yandex.ru/maps/..." />
+      </label>
+      <label className="admin-field">
+        <span>Ссылка на билеты</span>
+        <input name="ticketUrl" type="url" placeholder="https://..." required />
       </label>
       <label className="admin-field">
         <span>Встреча VK</span>
