@@ -8,14 +8,14 @@ type EventAction = {
 
 export type EventCardProps = {
   title?: string;
-  artists: string;
-  dateLabel: string;
-  city: string;
-  venue: string;
+  artists?: string;
+  dateLabel?: string;
+  city?: string;
+  venue?: string;
   mapUrl?: string;
-  poster: StaticImageData | string;
+  poster?: StaticImageData | string;
   priorityClass: 1 | 2 | 3;
-  actions: EventAction[];
+  actions?: EventAction[];
 };
 
 export function EventCard({
@@ -28,24 +28,25 @@ export function EventCard({
   poster,
   actions
 }: EventCardProps) {
-  const displayTitle = title || artists;
-  const posterSrc = typeof poster === "string" ? poster : poster.src;
+  const displayTitle = title || artists || "Без названия";
+  const posterSrc = typeof poster === "string" ? poster : poster?.src;
+  const safeActions = Array.isArray(actions) ? actions : [];
 
   return (
     <article className="card">
       <div className="card__poster">
-        <img
-          src={posterSrc}
-          alt={`Афиша: ${displayTitle}`}
-          loading="lazy"
-        />
+        {posterSrc ? (
+          <img src={posterSrc} alt={`Афиша: ${displayTitle}`} loading="lazy" />
+        ) : (
+          <div className="card__poster-placeholder">Афиша</div>
+        )}
       </div>
       <div className="card__body">
         <h3 className="card__title">{displayTitle}</h3>
         {title ? <div className="card__artists">{artists}</div> : null}
-        <div className="card__date">{dateLabel}</div>
+        {dateLabel ? <div className="card__date">{dateLabel}</div> : null}
         <div className="card__venue">
-          {city},{" "}
+          {city ? `${city}, ` : ""}
           {mapUrl ? (
             <a href={mapUrl} target="_blank" rel="noreferrer noopener">
               {venue}
@@ -55,8 +56,8 @@ export function EventCard({
           )}
         </div>
         <div className="card__actions">
-          {actions.length > 0 ? (
-            actions.map((action) => (
+          {safeActions.length > 0 ? (
+            safeActions.map((action) => (
               <a
                 key={`${displayTitle}-${action.label}`}
                 className={`card__action card__action--${action.variant}`}
