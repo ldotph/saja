@@ -1,4 +1,4 @@
-import Image, { StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
 
 type EventAction = {
   label: string;
@@ -29,15 +29,15 @@ export function EventCard({
   actions
 }: EventCardProps) {
   const displayTitle = title || artists;
+  const posterSrc = typeof poster === "string" ? poster : poster.src;
 
   return (
     <article className="card">
       <div className="card__poster">
-        <Image
-          src={poster}
+        <img
+          src={posterSrc}
           alt={`Афиша: ${displayTitle}`}
-          fill
-          sizes="(max-width: 760px) 100vw, (max-width: 1080px) 50vw, 33vw"
+          loading="lazy"
         />
       </div>
       <div className="card__body">
