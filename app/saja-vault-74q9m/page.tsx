@@ -1,18 +1,24 @@
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { CITY_OPTIONS } from "@/lib/cms/constants";
-import { listEvents, listSubmissions } from "@/lib/cms/storage";
-import type { CmsEvent, Submission } from "@/lib/cms/types";
+import { CITY_OPTIONS, RELEASES_LAB_PATH } from "@/lib/cms/constants";
+import { listEvents, listReleases, listSubmissions } from "@/lib/cms/storage";
+import type { CmsEvent, ReleaseRecord, Submission } from "@/lib/cms/types";
 import {
+  archiveReleaseAction,
   createDraftFromSubmissionAction,
   createEventAction,
+  createReleaseAction,
   deleteEventAction,
   hideEventAction,
+  hideReleaseAction,
   loginAction,
   logoutAction,
   publishEventAction,
+  publishReleaseAction,
   rejectSubmissionAction,
   returnEventToDraftAction,
-  updateEventAction
+  returnReleaseToDraftAction,
+  updateEventAction,
+  updateReleaseAction
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +41,13 @@ const eventStatusLabels: Record<CmsEvent["status"], string> = {
   published: "Опубликовано",
   hidden: "Скрыто",
   archived: "Удалено с сайта"
+};
+
+const releaseStatusLabels: Record<ReleaseRecord["status"], string> = {
+  draft: "Черновик",
+  published: "Опубликовано",
+  hidden: "Скрыто",
+  archived: "В архиве"
 };
 
 function formatAdminDate(date: string) {
@@ -390,6 +403,155 @@ function ArchivedEventCard({ event }: { event: CmsEvent }) {
   );
 }
 
+function ReleaseCard({ release }: { release: ReleaseRecord }) {
+  const isArchived = release.status === "archived";
+
+  return (
+    <article className="admin-card">
+      <img
+        className="admin-card__poster admin-card__poster--square"
+        src={release.coverUrl}
+        alt={`Обложка: ${release.artist} — ${release.title}`}
+      />
+      <div className="admin-card__content">
+        <div className="admin-card__meta">
+          <span>{releaseStatusLabels[release.status]}</span>
+          <span>
+            Рейтинг:{" "}
+            {release.votesCount > 0
+              ? `${release.averageScore} / 10, голосов: ${release.votesCount}`
+              : "голосов пока нет"}
+          </span>
+        </div>
+        <h3>{release.artist}</h3>
+        <div className="admin-artists">{release.title}</div>
+        <p className="admin-note">{release.description}</p>
+        <div className="admin-actions">
+          <form action={publishReleaseAction}>
+            <input name="id" type="hidden" value={release.id} />
+            <button
+              className="admin-button admin-button--primary"
+              type="submit"
+              disabled={release.status === "published"}
+            >
+              Опубликовать
+            </button>
+          </form>
+          <form action={hideReleaseAction}>
+            <input name="id" type="hidden" value={release.id} />
+            <button className="admin-button" type="submit">
+              Скрыть
+            </button>
+          </form>
+          <form action={archiveReleaseAction}>
+            <input name="id" type="hidden" value={release.id} />
+            <button className="admin-button" type="submit">
+              В архив
+            </button>
+          </form>
+          {isArchived ? (
+            <form action={returnReleaseToDraftAction}>
+              <input name="id" type="hidden" value={release.id} />
+              <button className="admin-button" type="submit">
+                Вернуть в черновик
+              </button>
+            </form>
+          ) : null}
+        </div>
+        <details className="admin-edit">
+          <summary>Редактировать релиз</summary>
+          <form
+            className="admin-form admin-form--compact"
+            action={updateReleaseAction}
+          >
+            <input name="id" type="hidden" value={release.id} />
+            <label className="admin-field">
+              <span>Исполнитель</span>
+              <input
+                name="artist"
+                type="text"
+                required
+                defaultValue={release.artist}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Название альбома</span>
+              <input
+                name="title"
+                type="text"
+                required
+                defaultValue={release.title}
+              />
+            </label>
+            <label className="admin-field admin-field--wide">
+              <span>Описание</span>
+              <textarea
+                name="description"
+                required
+                defaultValue={release.description}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Статус</span>
+              <select name="status" defaultValue={release.status}>
+                <option value="draft">Черновик</option>
+                <option value="published">Опубликовано</option>
+                <option value="hidden">Скрыто</option>
+                <option value="archived">В архиве</option>
+              </select>
+            </label>
+            <label className="admin-field">
+              <span>Заменить обложку</span>
+              <input name="cover" type="file" accept=".jpg,.jpeg,.png,.webp" />
+            </label>
+            <button className="admin-button admin-button--primary" type="submit">
+              Сохранить релиз
+            </button>
+          </form>
+        </details>
+      </div>
+    </article>
+  );
+}
+
+function CreateReleaseForm() {
+  return (
+    <form className="admin-form" action={createReleaseAction}>
+      <label className="admin-field">
+        <span>Исполнитель</span>
+        <input name="artist" type="text" placeholder="Например: Sonic Youth" required />
+      </label>
+      <label className="admin-field">
+        <span>Название альбома</span>
+        <input name="title" type="text" placeholder="Например: Goo" required />
+      </label>
+      <label className="admin-field admin-field--wide">
+        <span>Описание</span>
+        <textarea
+          name="description"
+          placeholder="Коротко: почему этот релиз стоит послушать"
+          required
+        />
+      </label>
+      <label className="admin-field">
+        <span>Статус</span>
+        <select name="status" defaultValue="draft">
+          <option value="draft">Черновик</option>
+          <option value="published">Опубликовать сразу</option>
+          <option value="hidden">Скрыто</option>
+        </select>
+      </label>
+      <label className="admin-field">
+        <span>Обложка</span>
+        <input name="cover" type="file" accept=".jpg,.jpeg,.png,.webp" required />
+      </label>
+      <button className="admin-button admin-button--primary" type="submit">
+        Создать релиз
+      </button>
+    </form>
+  );
+}
+
 function CreateEventForm() {
   return (
     <form className="admin-form" action={createEventAction}>
@@ -478,9 +640,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     return <AdminLogin hasError={params?.login === "failed"} />;
   }
 
-  const [submissions, events] = await Promise.all([
+  const [submissions, events, releases] = await Promise.all([
     listSubmissions(),
-    listEvents()
+    listEvents(),
+    listReleases()
   ]);
 
   const newSubmissionsCount = submissions.filter(
@@ -500,7 +663,17 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   );
   const publishedEvents = events.filter((event) => event.status === "published");
   const archivedEvents = events.filter((event) => event.status === "archived");
-  const processedItemsCount = processedSubmissions.length + archivedEvents.length;
+  const activeReleases = releases.filter(
+    (release) => release.status !== "archived"
+  );
+  const publishedReleasesCount = releases.filter(
+    (release) => release.status === "published"
+  ).length;
+  const archivedReleases = releases.filter(
+    (release) => release.status === "archived"
+  );
+  const processedItemsCount =
+    processedSubmissions.length + archivedEvents.length + archivedReleases.length;
 
   return (
     <main className="admin-shell">
@@ -529,6 +702,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         <div>
           <span>Опубликовано</span>
           <strong>{publishedEventsCount}</strong>
+        </div>
+        <div>
+          <span>Релизы недели</span>
+          <strong>{publishedReleasesCount}</strong>
         </div>
       </section>
 
@@ -583,6 +760,32 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         </div>
       </section>
 
+      <section className="admin-section" aria-labelledby="create-release-title">
+        <div className="admin-section__heading">
+          <h2 id="create-release-title">Создать релиз недели</h2>
+          <a href={RELEASES_LAB_PATH} target="_blank" rel="noreferrer">
+            Открыть скрытую страницу
+          </a>
+        </div>
+        <CreateReleaseForm />
+      </section>
+
+      <section className="admin-section" aria-labelledby="releases-title">
+        <div className="admin-section__heading">
+          <h2 id="releases-title">Релизы недели</h2>
+          <span>{activeReleases.length}</span>
+        </div>
+        <div className="admin-list">
+          {activeReleases.length > 0 ? (
+            activeReleases.map((release) => (
+              <ReleaseCard key={release.id} release={release} />
+            ))
+          ) : (
+            <div className="empty-state">Релизов пока нет.</div>
+          )}
+        </div>
+      </section>
+
       <section className="admin-section" aria-labelledby="processed-submissions-title">
         <details className="admin-collapsible">
           <summary>
@@ -600,6 +803,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             {archivedEvents.length > 0 ? (
               archivedEvents.map((event) => (
                 <ArchivedEventCard key={event.id} event={event} />
+              ))
+            ) : null}
+            {archivedReleases.length > 0 ? (
+              archivedReleases.map((release) => (
+                <ReleaseCard key={release.id} release={release} />
               ))
             ) : null}
             {processedItemsCount === 0 ? (

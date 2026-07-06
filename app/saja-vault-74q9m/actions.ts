@@ -7,19 +7,22 @@ import {
   setAdminSession,
   verifyAdminCredentials
 } from "@/lib/admin-auth";
-import { ADMIN_BASE_PATH } from "@/lib/cms/constants";
+import { ADMIN_BASE_PATH, RELEASES_LAB_PATH } from "@/lib/cms/constants";
 import {
   createDraftFromSubmission,
   createEvent,
+  createRelease,
   deleteEvent,
   parsePriorityClass,
   setEventStatus,
+  setReleaseStatus,
   setSubmissionStatus,
   updateEvent,
+  updateRelease,
   validateImageFile,
   validateUrl
 } from "@/lib/cms/storage";
-import type { CmsEventStatus } from "@/lib/cms/types";
+import type { CmsEventStatus, CmsReleaseStatus } from "@/lib/cms/types";
 
 function getString(formData: FormData, field: string) {
   return String(formData.get(field) ?? "").trim();
@@ -126,6 +129,56 @@ export async function createEventAction(formData: FormData) {
   redirect(ADMIN_BASE_PATH);
 }
 
+export async function createReleaseAction(formData: FormData) {
+  const cover = formData.get("cover");
+  const fileError = validateImageFile(cover instanceof File ? cover : null);
+
+  if (fileError || !(cover instanceof File)) {
+    throw new Error(fileError ?? "Прикрепите обложку релиза.");
+  }
+
+  await createRelease(
+    {
+      artist: getRequiredString(formData, "artist", "исполнитель"),
+      title: getRequiredString(formData, "title", "название альбома"),
+      description: getRequiredString(formData, "description", "описание"),
+      status: (getString(formData, "status") || "draft") as CmsReleaseStatus
+    },
+    cover
+  );
+
+  revalidatePath(ADMIN_BASE_PATH);
+  revalidatePath(RELEASES_LAB_PATH);
+  redirect(ADMIN_BASE_PATH);
+}
+
+export async function updateReleaseAction(formData: FormData) {
+  const cover = formData.get("cover");
+
+  if (cover instanceof File && cover.size > 0) {
+    const fileError = validateImageFile(cover);
+
+    if (fileError) {
+      throw new Error(fileError);
+    }
+  }
+
+  await updateRelease(
+    getRequiredString(formData, "id", "релиз"),
+    {
+      artist: getRequiredString(formData, "artist", "исполнитель"),
+      title: getRequiredString(formData, "title", "название альбома"),
+      description: getRequiredString(formData, "description", "описание"),
+      status: (getString(formData, "status") || "draft") as CmsReleaseStatus
+    },
+    cover instanceof File ? cover : undefined
+  );
+
+  revalidatePath(ADMIN_BASE_PATH);
+  revalidatePath(RELEASES_LAB_PATH);
+  redirect(ADMIN_BASE_PATH);
+}
+
 export async function updateEventAction(formData: FormData) {
   const ticketUrl = getRequiredString(formData, "ticketUrl", "ссылка на билеты");
   const mapUrl = getString(formData, "mapUrl");
@@ -211,5 +264,39 @@ export async function returnEventToDraftAction(formData: FormData) {
   await setEventStatus(getRequiredString(formData, "id", "афиша"), "draft");
   revalidatePath("/");
   revalidatePath(ADMIN_BASE_PATH);
+  redirect(ADMIN_BASE_PATH);
+}
+
+export async function publishReleaseAction(formData: FormData) {
+  await setReleaseStatus(
+    getRequiredString(formData, "id", "релиз"),
+    "published"
+  );
+  revalidatePath(ADMIN_BASE_PATH);
+  revalidatePath(RELEASES_LAB_PATH);
+  redirect(ADMIN_BASE_PATH);
+}
+
+export async function hideReleaseAction(formData: FormData) {
+  await setReleaseStatus(getRequiredString(formData, "id", "релиз"), "hidden");
+  revalidatePath(ADMIN_BASE_PATH);
+  revalidatePath(RELEASES_LAB_PATH);
+  redirect(ADMIN_BASE_PATH);
+}
+
+export async function archiveReleaseAction(formData: FormData) {
+  await setReleaseStatus(
+    getRequiredString(formData, "id", "релиз"),
+    "archived"
+  );
+  revalidatePath(ADMIN_BASE_PATH);
+  revalidatePath(RELEASES_LAB_PATH);
+  redirect(ADMIN_BASE_PATH);
+}
+
+export async function returnReleaseToDraftAction(formData: FormData) {
+  await setReleaseStatus(getRequiredString(formData, "id", "релиз"), "draft");
+  revalidatePath(ADMIN_BASE_PATH);
+  revalidatePath(RELEASES_LAB_PATH);
   redirect(ADMIN_BASE_PATH);
 }

@@ -3,10 +3,15 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type {
   CmsEvent,
+  CmsRelease,
   CmsStore,
   EventInput,
   EventRecord,
   PriorityClass,
+  ReleaseInput,
+  ReleaseRating,
+  ReleaseRecord,
+  ReleaseVote,
   Submission,
   SubmissionInput,
   SubmissionStatus
@@ -35,7 +40,9 @@ const uploadDir = process.env.SAJA_UPLOAD_DIR
 
 const emptyStore: CmsStore = {
   events: [],
-  submissions: []
+  submissions: [],
+  releases: [],
+  releaseVotes: []
 };
 
 async function ensureStorage() {
@@ -56,7 +63,9 @@ async function readStore(): Promise<CmsStore> {
 
   return {
     events: (parsedStore.events ?? []).map(normalizeEvent),
-    submissions: (parsedStore.submissions ?? []).map(normalizeSubmission)
+    submissions: (parsedStore.submissions ?? []).map(normalizeSubmission),
+    releases: (parsedStore.releases ?? []).map(normalizeRelease),
+    releaseVotes: (parsedStore.releaseVotes ?? []).map(normalizeReleaseVote)
   };
 }
 
@@ -119,6 +128,23 @@ function normalizeSubmission(submission: Submission) {
   };
 }
 
+function normalizeRelease(release: CmsRelease) {
+  return {
+    ...release,
+    artist: release.artist?.trim() || "Неизвестный артист",
+    title: release.title?.trim() || "Без названия",
+    description: release.description?.trim() || "Описание появится позже.",
+    coverUrl: normalizeUploadUrl(release.coverUrl)
+  };
+}
+
+function normalizeReleaseVote(vote: ReleaseVote) {
+  return {
+    ...vote,
+    score: Math.min(10, Math.max(1, Number(vote.score) || 1))
+  };
+}
+
 function buildEventActions(event: CmsEvent): EventRecord["actions"] {
   const actions: EventRecord["actions"] = [
     {
@@ -153,6 +179,52 @@ function eventToRecord(event: CmsEvent): EventRecord {
     priorityClass: event.priorityClass,
     actions: buildEventActions(event)
   };
+}
+
+function calculateReleaseRating(
+  releaseId: string,
+  votes: ReleaseVote[]
+): ReleaseRating {
+  const releaseVotes = votes.filter((vote) => vote.releaseId === releaseId);
+  const votesCount = releaseVotes.length;
+
+  if (votesCount === 0) {
+    return {
+      averageScore: 0,
+      votesCount
+    };
+  }
+
+  const totalScore = releaseVotes.reduce((sum, vote) => sum + vote.score, 0);
+
+  return {
+    averageScore: Number((totalScore / votesCount).toFixed(1)),
+    votesCount
+  };
+}
+
+function releaseToRecord(
+  release: CmsRelease,
+  votes: ReleaseVote[]
+): ReleaseRecord {
+  return {
+    ...release,
+    ...calculateReleaseRating(release.id, votes)
+  };
+}
+
+function sortReleaseRecords(left: ReleaseRecord, right: ReleaseRecord) {
+  if (right.averageScore !== left.averageScore) {
+    return right.averageScore - left.averageScore;
+  }
+
+  if (right.votesCount !== left.votesCount) {
+    return right.votesCount - left.votesCount;
+  }
+
+  return (
+    new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+  );
 }
 
 function isExpiredSubmission(submission: Submission) {
@@ -271,6 +343,32 @@ export async function listPublishedEventRecords() {
     .map(eventToRecord);
 }
 
+export async function listReleases() {
+  const store = await readStore();
+
+  return [...store.releases]
+    .map((release) => releaseToRecord(release, store.releaseVotes))
+    .sort(sortReleaseRecords);
+}
+
+export async function listPublishedReleaseRecords() {
+  const releases = await listReleases();
+
+  return releases
+    .filter((release) => release.status === "published")
+    .slice(0, 10);
+}
+
+export function parseReleaseScore(value: unknown) {
+  const score = Number(value);
+
+  if (!Number.isInteger(score) || score < 1 || score > 10) {
+    throw new Error("Оценка должна быть от 1 до 10.");
+  }
+
+  return score;
+}
+
 export async function addSubmission(input: SubmissionInput, poster: File) {
   const store = await pruneExpiredSubmissions(await readStore());
   const now = new Date().toISOString();
@@ -314,6 +412,109 @@ export async function createEvent(input: EventInput, poster: File) {
   await writeStore(store);
 
   return event;
+}
+
+export async function createRelease(input: ReleaseInput, cover: File) {
+  const store = await readStore();
+  const now = new Date().toISOString();
+  const coverUrl = await saveUpload(cover, "release");
+  const release: CmsRelease = {
+    id: randomUUID(),
+    ...input,
+    artist: input.artist.trim(),
+    title: input.title.trim(),
+    description: input.description.trim(),
+    coverUrl,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  store.releases.unshift(release);
+  await writeStore(store);
+
+  return release;
+}
+
+export async function updateRelease(
+  releaseId: string,
+  input: ReleaseInput,
+  cover?: File
+) {
+  const store = await readStore();
+  const release = store.releases.find((item) => item.id === releaseId);
+
+  if (!release) {
+    throw new Error("Релиз не найден.");
+  }
+
+  release.artist = input.artist.trim();
+  release.title = input.title.trim();
+  release.description = input.description.trim();
+  release.status = input.status;
+  release.updatedAt = new Date().toISOString();
+
+  if (cover && cover.size > 0) {
+    release.coverUrl = await saveUpload(cover, "release");
+  }
+
+  await writeStore(store);
+
+  return release;
+}
+
+export async function setReleaseStatus(
+  releaseId: string,
+  status: CmsRelease["status"]
+) {
+  const store = await readStore();
+  const release = store.releases.find((item) => item.id === releaseId);
+
+  if (!release) {
+    throw new Error("Релиз не найден.");
+  }
+
+  release.status = status;
+  release.updatedAt = new Date().toISOString();
+  await writeStore(store);
+}
+
+export async function voteForRelease(
+  releaseId: string,
+  score: number,
+  voterHash: string
+) {
+  const store = await readStore();
+  const release = store.releases.find(
+    (item) => item.id === releaseId && item.status === "published"
+  );
+
+  if (!release) {
+    throw new Error("Релиз не найден или еще не опубликован.");
+  }
+
+  const safeScore = parseReleaseScore(score);
+  const now = new Date().toISOString();
+  const existingVote = store.releaseVotes.find(
+    (vote) => vote.releaseId === releaseId && vote.voterHash === voterHash
+  );
+
+  if (existingVote) {
+    existingVote.score = safeScore;
+    existingVote.updatedAt = now;
+  } else {
+    store.releaseVotes.push({
+      id: randomUUID(),
+      releaseId,
+      score: safeScore,
+      voterHash,
+      createdAt: now,
+      updatedAt: now
+    });
+  }
+
+  await writeStore(store);
+
+  return calculateReleaseRating(releaseId, store.releaseVotes);
 }
 
 export async function updateEvent(

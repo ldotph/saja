@@ -1,6 +1,7 @@
-# SAJA Booking
+# САЖА
 
-Одностраничный сайт концертного агентства на `Next.js + TypeScript`.
+Сайт с афишами локальных концертов, заявками музыкантов, панелью
+администратора и экспериментальным разделом релизов недели.
 
 ## Запуск
 
@@ -25,6 +26,7 @@ npm run dev
 ADMIN_LOGIN=sazhafm
 ADMIN_PASSWORD=ratusha
 ADMIN_SESSION_SECRET=replace-with-long-random-string
+SUBMISSION_RETENTION_DAYS=40
 ```
 
 Файл [data/events.ts](/Users/mg/Desktop/saja/data/events.ts) пока содержит стартовые афиши, которые были на сайте до появления панели.
@@ -75,7 +77,32 @@ ADMIN_SESSION_SECRET=replace-with-long-random-string
 Заявки хранятся 40 дней, затем автоматически очищаются при следующем обращении
 к хранилищу.
 
+## Релизы недели
+
+Тестовый раздел релизов находится на скрытом URL:
+
+```text
+/releases-lab-8m2q
+```
+
+На главной странице ссылки на него нет. Релизы создаются и редактируются в
+панели администратора. Пользователи могут ставить оценку от 1 до 10, рейтинг
+считается автоматически.
+
+Для защиты голосования можно подключить бесплатный Cloudflare Turnstile:
+
+```text
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
+RELEASE_VOTE_SECRET=replace-with-long-random-string
+```
+
+Если ключи Turnstile не заданы, локальная версия голосования работает без
+капчи. На сервере перед публичным запуском ключи лучше добавить обязательно.
+
 ## Что нужно подставить вручную
 
 - `ADMIN_SESSION_SECRET` в `.env` на сервере.
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` и `TURNSTILE_SECRET_KEY`, когда будем
+  включать голосование публично.
 - Финальный публичный домен сайта.

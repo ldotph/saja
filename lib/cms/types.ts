@@ -23,6 +23,7 @@ export type EventRecord = {
 };
 
 export type CmsEventStatus = "draft" | "published" | "hidden" | "archived";
+export type CmsReleaseStatus = "draft" | "published" | "hidden" | "archived";
 
 export type CmsEvent = {
   id: string;
@@ -69,6 +70,8 @@ export type Submission = {
 export type CmsStore = {
   events: CmsEvent[];
   submissions: Submission[];
+  releases: CmsRelease[];
+  releaseVotes: ReleaseVote[];
 };
 
 export type SubmissionInput = {
@@ -93,4 +96,41 @@ export type EventInput = {
   meetingUrl?: string;
   priorityClass: PriorityClass;
   status: CmsEventStatus;
+};
+
+export type CmsRelease = {
+  id: string;
+  artist: string;
+  title: string;
+  description: string;
+  coverUrl: string;
+  status: CmsReleaseStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ReleaseVote = {
+  id: string;
+  releaseId: string;
+  score: number;
+  voterHash: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ReleaseInput = {
+  artist: string;
+  title: string;
+  description: string;
+  status: CmsReleaseStatus;
+};
+
+export type ReleaseRecord = CmsRelease & {
+  averageScore: number;
+  votesCount: number;
+};
+
+export type ReleaseRating = {
+  averageScore: number;
+  votesCount: number;
 };
