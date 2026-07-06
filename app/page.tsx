@@ -35,9 +35,14 @@ export default async function HomePage() {
             прямые ссылки на билеты, встречу и маршрут до клуба, а для
             музыкантов есть хорошая возможность попромить свой гиг.
           </p>
-          <a className="hero__cta" href="#contact">
-            Разместить афишу
-          </a>
+          <div className="hero__actions">
+            <a className="hero__cta" href="#contact">
+              Разместить афишу
+            </a>
+            <a className="hero__cta hero__cta--secondary" href="/releases">
+              Релизы недели
+            </a>
+          </div>
         </div>
       </section>
 

@@ -209,7 +209,22 @@ textarea {
 }
 
 .hero__content .hero__cta {
+  margin-top: 0;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
   margin-top: 26px;
+}
+
+.hero__cta--secondary {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  box-shadow: none;
 }
 
 .concerts,
@@ -412,6 +427,72 @@ textarea {
 
 .release-vote__message[data-tone="error"] {
   color: var(--accent-strong);
+}
+
+.release-leaderboards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.release-leaderboard {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.release-leaderboard h3 {
+  margin: 0 0 14px;
+  font-size: clamp(1.6rem, 4vw, 2.8rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.release-leaderboard ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: release-leaders;
+}
+
+.release-leaderboard li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  counter-increment: release-leaders;
+}
+
+.release-leaderboard li::before {
+  content: counter(release-leaders, decimal-leading-zero);
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.release-leaderboard li {
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+}
+
+.release-leaderboard span {
+  min-width: 0;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.release-leaderboard strong {
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.release-leaderboard small,
+.release-leaderboard p {
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .section-heading {
@@ -1055,6 +1136,10 @@ textarea {
   .form__submit:hover {
     background: var(--accent-strong);
   }
+
+  .hero__cta--secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
 @media (max-width: 1080px) {
@@ -1106,7 +1191,8 @@ textarea {
   .admin-stats,
   .admin-form,
   .admin-details,
-  .release-card {
+  .release-card,
+  .release-leaderboards {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1135,6 +1221,10 @@ textarea {
 
   .card__actions {
     flex-direction: column;
+  }
+
+  .hero__actions {
+    display: grid;
   }
 
   .card__action,

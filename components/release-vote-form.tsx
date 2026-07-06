@@ -32,6 +32,7 @@ type VoteResponse = {
   message: string;
   rating?: {
     averageScore: number;
+    weightedScore: number;
     votesCount: number;
   };
 };
@@ -65,7 +66,7 @@ function formatRating(averageScore: number, votesCount: number) {
     return "Пока нет оценок";
   }
 
-  return `${averageScore.toFixed(1)} / 10`;
+  return `${averageScore.toFixed(1)} / 5`;
 }
 
 export function ReleaseVoteForm({
@@ -112,7 +113,7 @@ export function ReleaseVoteForm({
   async function submitVote() {
     if (selectedScore === null) {
       setTone("error");
-      setMessage("Выберите оценку от 1 до 10.");
+      setMessage("Выберите оценку от 1 до 5.");
       return;
     }
 
@@ -173,8 +174,8 @@ export function ReleaseVoteForm({
             : "Будьте первым, кто оценит"}
         </small>
       </div>
-      <div className="release-vote__scale" aria-label="Оценка от 1 до 10">
-        {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
+      <div className="release-vote__scale" aria-label="Оценка от 1 до 5">
+        {Array.from({ length: 5 }, (_, index) => index + 1).map((score) => (
           <button
             key={score}
             className="release-vote__score"

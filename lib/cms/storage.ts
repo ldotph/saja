@@ -24,6 +24,9 @@ const ACCEPTED_FILE_TYPES = new Map([
 ]);
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const RELEASE_SCORE_MIN = 1;
+const RELEASE_SCORE_MAX = 5;
+const RELEASE_RATING_CONFIDENCE_VOTES = 5;
 const SUBMISSION_RETENTION_DAYS = Number(
   process.env.SUBMISSION_RETENTION_DAYS ?? 40
 );
@@ -141,7 +144,10 @@ function normalizeRelease(release: CmsRelease) {
 function normalizeReleaseVote(vote: ReleaseVote) {
   return {
     ...vote,
-    score: Math.min(10, Math.max(1, Number(vote.score) || 1))
+    score: Math.min(
+      RELEASE_SCORE_MAX,
+      Math.max(RELEASE_SCORE_MIN, Number(vote.score) || RELEASE_SCORE_MIN)
+    )
   };
 }
 
@@ -183,22 +189,37 @@ function eventToRecord(event: CmsEvent): EventRecord {
 
 function calculateReleaseRating(
   releaseId: string,
-  votes: ReleaseVote[]
+  votes: ReleaseVote[],
+  referenceVotes = votes
 ): ReleaseRating {
   const releaseVotes = votes.filter((vote) => vote.releaseId === releaseId);
   const votesCount = releaseVotes.length;
+  const referenceAverage =
+    referenceVotes.length > 0
+      ? referenceVotes.reduce((sum, vote) => sum + vote.score, 0) /
+        referenceVotes.length
+      : (RELEASE_SCORE_MIN + RELEASE_SCORE_MAX) / 2;
 
   if (votesCount === 0) {
     return {
       averageScore: 0,
+      weightedScore: Number(referenceAverage.toFixed(2)),
       votesCount
     };
   }
 
   const totalScore = releaseVotes.reduce((sum, vote) => sum + vote.score, 0);
+  const averageScore = totalScore / votesCount;
+  const weightedScore =
+    (votesCount / (votesCount + RELEASE_RATING_CONFIDENCE_VOTES)) *
+      averageScore +
+    (RELEASE_RATING_CONFIDENCE_VOTES /
+      (votesCount + RELEASE_RATING_CONFIDENCE_VOTES)) *
+      referenceAverage;
 
   return {
-    averageScore: Number((totalScore / votesCount).toFixed(1)),
+    averageScore: Number(averageScore.toFixed(1)),
+    weightedScore: Number(weightedScore.toFixed(2)),
     votesCount
   };
 }
@@ -214,8 +235,8 @@ function releaseToRecord(
 }
 
 function sortReleaseRecords(left: ReleaseRecord, right: ReleaseRecord) {
-  if (right.averageScore !== left.averageScore) {
-    return right.averageScore - left.averageScore;
+  if (right.weightedScore !== left.weightedScore) {
+    return right.weightedScore - left.weightedScore;
   }
 
   if (right.votesCount !== left.votesCount) {
@@ -225,6 +246,51 @@ function sortReleaseRecords(left: ReleaseRecord, right: ReleaseRecord) {
   return (
     new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
   );
+}
+
+function getMoscowDate(value = new Date()) {
+  return new Date(value.getTime() + 3 * 60 * 60 * 1000);
+}
+
+function getPreviousWeekRange() {
+  const now = getMoscowDate();
+  const day = now.getUTCDay() || 7;
+  const startOfCurrentWeek = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() - day + 1,
+    0,
+    0,
+    0
+  );
+  const start = new Date(startOfCurrentWeek - 7 * 24 * 60 * 60 * 1000);
+  const end = new Date(startOfCurrentWeek);
+
+  return {
+    start: new Date(start.getTime() - 3 * 60 * 60 * 1000),
+    end: new Date(end.getTime() - 3 * 60 * 60 * 1000)
+  };
+}
+
+function getLastThirtyDaysRange() {
+  const end = new Date();
+  const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  return { start, end };
+}
+
+function filterVotesByRange(
+  votes: ReleaseVote[],
+  range: { start: Date; end: Date }
+) {
+  const startTime = range.start.getTime();
+  const endTime = range.end.getTime();
+
+  return votes.filter((vote) => {
+    const voteTime = new Date(vote.updatedAt || vote.createdAt).getTime();
+
+    return voteTime >= startTime && voteTime < endTime;
+  });
 }
 
 function isExpiredSubmission(submission: Submission) {
@@ -359,11 +425,45 @@ export async function listPublishedReleaseRecords() {
     .slice(0, 10);
 }
 
+export async function listReleaseLeaderboards() {
+  const store = await readStore();
+  const publishedReleases = store.releases.filter(
+    (release) => release.status === "published"
+  );
+  const previousWeekVotes = filterVotesByRange(
+    store.releaseVotes,
+    getPreviousWeekRange()
+  );
+  const lastThirtyDaysVotes = filterVotesByRange(
+    store.releaseVotes,
+    getLastThirtyDaysRange()
+  );
+
+  return {
+    previousWeek: publishedReleases
+      .map((release) => releaseToRecord(release, previousWeekVotes))
+      .filter((release) => release.averageScore > 0)
+      .filter((release): release is ReleaseRecord => Boolean(release))
+      .sort(sortReleaseRecords)
+      .slice(0, 10),
+    lastThirtyDays: publishedReleases
+      .map((release) => releaseToRecord(release, lastThirtyDaysVotes))
+      .filter((release) => release.averageScore > 0)
+      .filter((release): release is ReleaseRecord => Boolean(release))
+      .sort(sortReleaseRecords)
+      .slice(0, 10)
+  };
+}
+
 export function parseReleaseScore(value: unknown) {
   const score = Number(value);
 
-  if (!Number.isInteger(score) || score < 1 || score > 10) {
-    throw new Error("Оценка должна быть от 1 до 10.");
+  if (
+    !Number.isInteger(score) ||
+    score < RELEASE_SCORE_MIN ||
+    score > RELEASE_SCORE_MAX
+  ) {
+    throw new Error("Оценка должна быть от 1 до 5.");
   }
 
   return score;

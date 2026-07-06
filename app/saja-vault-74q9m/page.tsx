@@ -1,5 +1,5 @@
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { CITY_OPTIONS, RELEASES_LAB_PATH } from "@/lib/cms/constants";
+import { CITY_OPTIONS, RELEASES_PATH } from "@/lib/cms/constants";
 import { listEvents, listReleases, listSubmissions } from "@/lib/cms/storage";
 import type { CmsEvent, ReleaseRecord, Submission } from "@/lib/cms/types";
 import {
@@ -419,7 +419,7 @@ function ReleaseCard({ release }: { release: ReleaseRecord }) {
           <span>
             Рейтинг:{" "}
             {release.votesCount > 0
-              ? `${release.averageScore} / 10, голосов: ${release.votesCount}`
+              ? `${release.averageScore} / 5, голосов: ${release.votesCount}`
               : "голосов пока нет"}
           </span>
         </div>
@@ -763,8 +763,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <section className="admin-section" aria-labelledby="create-release-title">
         <div className="admin-section__heading">
           <h2 id="create-release-title">Создать релиз недели</h2>
-          <a href={RELEASES_LAB_PATH} target="_blank" rel="noreferrer">
-            Открыть скрытую страницу
+          <a href={RELEASES_PATH} target="_blank" rel="noreferrer">
+            Открыть страницу релизов
           </a>
         </div>
         <CreateReleaseForm />

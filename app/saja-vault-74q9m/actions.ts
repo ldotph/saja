@@ -7,7 +7,7 @@ import {
   setAdminSession,
   verifyAdminCredentials
 } from "@/lib/admin-auth";
-import { ADMIN_BASE_PATH, RELEASES_LAB_PATH } from "@/lib/cms/constants";
+import { ADMIN_BASE_PATH, RELEASES_PATH } from "@/lib/cms/constants";
 import {
   createDraftFromSubmission,
   createEvent,
@@ -148,7 +148,7 @@ export async function createReleaseAction(formData: FormData) {
   );
 
   revalidatePath(ADMIN_BASE_PATH);
-  revalidatePath(RELEASES_LAB_PATH);
+  revalidatePath(RELEASES_PATH);
   redirect(ADMIN_BASE_PATH);
 }
 
@@ -175,7 +175,7 @@ export async function updateReleaseAction(formData: FormData) {
   );
 
   revalidatePath(ADMIN_BASE_PATH);
-  revalidatePath(RELEASES_LAB_PATH);
+  revalidatePath(RELEASES_PATH);
   redirect(ADMIN_BASE_PATH);
 }
 
@@ -273,14 +273,14 @@ export async function publishReleaseAction(formData: FormData) {
     "published"
   );
   revalidatePath(ADMIN_BASE_PATH);
-  revalidatePath(RELEASES_LAB_PATH);
+  revalidatePath(RELEASES_PATH);
   redirect(ADMIN_BASE_PATH);
 }
 
 export async function hideReleaseAction(formData: FormData) {
   await setReleaseStatus(getRequiredString(formData, "id", "релиз"), "hidden");
   revalidatePath(ADMIN_BASE_PATH);
-  revalidatePath(RELEASES_LAB_PATH);
+  revalidatePath(RELEASES_PATH);
   redirect(ADMIN_BASE_PATH);
 }
 
@@ -290,13 +290,13 @@ export async function archiveReleaseAction(formData: FormData) {
     "archived"
   );
   revalidatePath(ADMIN_BASE_PATH);
-  revalidatePath(RELEASES_LAB_PATH);
+  revalidatePath(RELEASES_PATH);
   redirect(ADMIN_BASE_PATH);
 }
 
 export async function returnReleaseToDraftAction(formData: FormData) {
   await setReleaseStatus(getRequiredString(formData, "id", "релиз"), "draft");
   revalidatePath(ADMIN_BASE_PATH);
-  revalidatePath(RELEASES_LAB_PATH);
+  revalidatePath(RELEASES_PATH);
   redirect(ADMIN_BASE_PATH);
 }

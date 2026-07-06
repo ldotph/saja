@@ -127,10 +127,12 @@ export type ReleaseInput = {
 
 export type ReleaseRecord = CmsRelease & {
   averageScore: number;
+  weightedScore: number;
   votesCount: number;
 };
 
 export type ReleaseRating = {
   averageScore: number;
+  weightedScore: number;
   votesCount: number;
 };
