@@ -8,7 +8,15 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 type VotePayload = {
   releaseId?: string;
   score?: number;
+  humanCheck?: string;
 };
+
+function isHumanCheckPassed(value: unknown) {
+  return String(value ?? "")
+    .trim()
+    .toLocaleLowerCase("ru-RU")
+    .replaceAll("ё", "е") === "сажа";
+}
 
 function createVoterHash(voterId: string, userAgent: string) {
   const salt =
@@ -30,6 +38,13 @@ export async function POST(request: NextRequest) {
     if (!releaseId) {
       return NextResponse.json(
         { message: "Релиз не найден." },
+        { status: 400 }
+      );
+    }
+
+    if (!isHumanCheckPassed(payload.humanCheck)) {
+      return NextResponse.json(
+        { message: "Введите слово САЖА, чтобы подтвердить голос." },
         { status: 400 }
       );
     }

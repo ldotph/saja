@@ -31,6 +31,7 @@ export function ReleaseVoteForm({
   initialVotesCount
 }: ReleaseVoteFormProps) {
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
+  const [humanCheck, setHumanCheck] = useState("");
   const [averageScore, setAverageScore] = useState(initialAverageScore);
   const [votesCount, setVotesCount] = useState(initialVotesCount);
   const [message, setMessage] = useState("");
@@ -41,6 +42,12 @@ export function ReleaseVoteForm({
     if (selectedScore === null) {
       setTone("error");
       setMessage("Выберите оценку от 1 до 5.");
+      return;
+    }
+
+    if (!humanCheck.trim()) {
+      setTone("error");
+      setMessage("Введите слово САЖА, чтобы подтвердить голос.");
       return;
     }
 
@@ -56,7 +63,8 @@ export function ReleaseVoteForm({
         },
         body: JSON.stringify({
           releaseId,
-          score: selectedScore
+          score: selectedScore,
+          humanCheck
         })
       });
       const result = (await response.json()) as VoteResponse;
@@ -72,6 +80,7 @@ export function ReleaseVoteForm({
 
       setTone("success");
       setMessage(result.message);
+      setHumanCheck("");
     } catch (error) {
       setTone("error");
       setMessage(
@@ -110,6 +119,19 @@ export function ReleaseVoteForm({
       </div>
       {selectedScore !== null ? (
         <div className="release-vote__confirm">
+          <label className="release-vote__human-check">
+            <span>Введите слово САЖА</span>
+            <input
+              type="text"
+              value={humanCheck}
+              placeholder="САЖА"
+              autoComplete="off"
+              onChange={(event) => {
+                setHumanCheck(event.target.value);
+                setMessage("");
+              }}
+            />
+          </label>
           <button
             className="release-vote__submit"
             type="button"

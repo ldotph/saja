@@ -399,6 +399,29 @@ textarea {
   align-items: center;
 }
 
+.release-vote__human-check {
+  display: grid;
+  gap: 6px;
+  min-width: min(100%, 210px);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.release-vote__human-check input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .release-vote__submit {
   min-height: 48px;
   padding: 0 18px;
