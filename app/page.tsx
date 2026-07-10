@@ -34,14 +34,20 @@ export default async function HomePage() {
             прямые ссылки на билеты, встречу и маршрут до клуба, а для
             музыкантов есть хорошая возможность попромить свой гиг.
           </p>
-          <div className="hero__actions">
-            <a className="hero__cta" href="#concerts">
-              Разместить афишу
+          <nav className="section-tabs" aria-label="Основные разделы сайта">
+            <a className="section-tab section-tab--active" href="#concerts">
+              <span className="section-tab__label">Актуальные афиши</span>
+              <span className="section-tab__text">
+                Концерты локальной сцены на ближайшие даты.
+              </span>
             </a>
-            <a className="hero__cta hero__cta--secondary" href="/releases">
-              Релизы недели
+            <a className="section-tab" href="/releases">
+              <span className="section-tab__label">Релизы месяца</span>
+              <span className="section-tab__text">
+                Рейтинг альбомов и синглов, вышедших в этом месяце.
+              </span>
             </a>
-          </div>
+          </nav>
         </div>
       </section>
 

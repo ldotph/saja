@@ -9,8 +9,8 @@ import type { ReleaseRecord } from "@/lib/cms/types";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Релизы недели — САЖА",
-  description: "Подборка релизов недели с пользовательским рейтингом."
+  title: "Релизы месяца — САЖА",
+  description: "Рейтинг альбомов и синглов, вышедших в этом месяце."
 };
 
 function Leaderboard({
@@ -53,19 +53,22 @@ export default async function ReleasesPage() {
   return (
     <main className="page-shell releases-page">
       <section className="releases-hero">
+        <a className="page-back-link" href="/#concerts">
+          ← Вернуться к афишам
+        </a>
         <p className="eyebrow">Слушаем и спорим</p>
-        <h1>Релизы недели</h1>
+        <h1>Релизы месяца</h1>
         <p>
-          Подборка альбомов от САЖИ. Оцените релизы от 1 до 5: общий рейтинг
-          пересобирается автоматически и учитывает не только среднюю оценку, но
-          и количество голосов.
+          Рейтинг альбомов и синглов, вышедших в этом месяце. Оцените релизы от
+          1 до 5: общий рейтинг пересобирается автоматически и учитывает не
+          только среднюю оценку, но и количество голосов.
         </p>
       </section>
 
       <section className="releases-section" aria-labelledby="releases-title">
         <div className="section-heading">
           <p className="eyebrow">Рейтинг слушателей</p>
-          <h2 id="releases-title">10 альбомов недели</h2>
+          <h2 id="releases-title">Альбомы и синглы месяца</h2>
         </div>
 
         {releases.length > 0 ? (
@@ -97,7 +100,7 @@ export default async function ReleasesPage() {
           </div>
         ) : (
           <div className="empty-state">
-            Релизы недели пока не опубликованы. Добавьте их в панели
+            Релизы месяца пока не опубликованы. Добавьте их в панели
             администратора.
           </div>
         )}
