@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ReleaseVoteForm } from "@/components/release-vote-form";
+import { SiteNav } from "@/components/site-nav";
 import {
   listPublishedReleaseRecords,
   listReleaseLeaderboards
@@ -52,6 +53,7 @@ export default async function ReleasesPage() {
 
   return (
     <main className="page-shell releases-page">
+      <SiteNav active="releases" />
       <section className="releases-hero">
         <p className="eyebrow">Слушаем и спорим</p>
         <h1>Релизы недели</h1>
