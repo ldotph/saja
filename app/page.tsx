@@ -1,7 +1,6 @@
 import Image from "next/image";
 import logo from "../assets/logos/logofulln.png";
-import { ContactForm } from "@/components/contact-form";
-import { EventFilters } from "@/components/event-filters";
+import { InquiryModal } from "@/components/inquiry-modal";
 import { getCityOptions, getSortedEvents } from "@/data/events";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +35,7 @@ export default async function HomePage() {
             музыкантов есть хорошая возможность попромить свой гиг.
           </p>
           <div className="hero__actions">
-            <a className="hero__cta" href="#contact">
+            <a className="hero__cta" href="#concerts">
               Разместить афишу
             </a>
             <a className="hero__cta hero__cta--secondary" href="/releases">
@@ -51,19 +50,7 @@ export default async function HomePage() {
           <p className="eyebrow">Афиши</p>
           <h2 id="concerts-title">Ближайшие концерты</h2>
         </div>
-        <EventFilters cities={cities} events={events} />
-      </section>
-
-      <section className="contact" id="contact" aria-labelledby="contact-title">
-        <div className="section-heading">
-          <p className="eyebrow">Для музыкантов</p>
-          <h2 id="contact-title">Оставить заявку на размещение афиши</h2>
-          <p className="section-copy">
-            Заполните форму ниже, после успешного прохождения модерации Ваша
-            афиша будет опубликована на сайте.
-          </p>
-        </div>
-        <ContactForm />
+        <InquiryModal cities={cities} events={events} />
       </section>
     </main>
   );

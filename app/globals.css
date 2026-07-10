@@ -233,6 +233,12 @@ textarea {
   padding: 28px;
 }
 
+.concerts__cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
 .releases-page {
   display: grid;
   gap: 22px;
@@ -787,6 +793,70 @@ textarea {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.empty-state__link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.76);
+  cursor: pointer;
+}
+
+.modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 100%);
+  max-height: min(88vh, 980px);
+  overflow: auto;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgba(24, 24, 24, 0.98), rgba(10, 10, 10, 0.98)),
+    var(--surface);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.58);
+}
+
+.modal__close {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  float: right;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modal .section-heading {
+  margin-bottom: 22px;
+}
+
 .admin-login,
 .admin-shell {
   width: min(1180px, calc(100% - 32px));
@@ -1174,6 +1244,21 @@ textarea {
   .releases-section {
     padding: 18px;
     border-radius: 22px;
+  }
+
+  .modal {
+    padding: 10px;
+    align-items: end;
+  }
+
+  .modal__panel {
+    max-height: 92vh;
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .modal__close {
+    margin-bottom: 10px;
   }
 
   .hero {

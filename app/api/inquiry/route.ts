@@ -8,8 +8,11 @@ function requiredString(formData: FormData, field: string) {
   return String(formData.get(field) ?? "").trim();
 }
 
-function validateTelegramId(telegramId: string) {
-  return /^@?[a-zA-Z0-9_]{5,32}$/.test(telegramId);
+function validateContact(contact: string) {
+  return (
+    /^@?[a-zA-Z0-9_]{5,32}$/.test(contact) ||
+    /^\+?\d[\d\s()-]{9,18}$/.test(contact)
+  );
 }
 
 export async function POST(request: Request) {
@@ -66,9 +69,9 @@ export async function POST(request: Request) {
     }
   }
 
-  if (!validateTelegramId(telegramId)) {
+  if (!validateContact(telegramId)) {
     return NextResponse.json(
-      { message: "Укажите Telegram ID в формате @username." },
+      { message: "Укажите Telegram ID в формате @username или номер телефона." },
       { status: 400 }
     );
   }

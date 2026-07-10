@@ -7,9 +7,10 @@ import { EventCard } from "@/components/event-card";
 type EventFiltersProps = {
   cities: readonly string[];
   events: EventRecord[];
+  onOpenInquiry: () => void;
 };
 
-export function EventFilters({ cities, events }: EventFiltersProps) {
+export function EventFilters({ cities, events, onOpenInquiry }: EventFiltersProps) {
   const [activeCity, setActiveCity] = useState("Все");
 
   const filteredEvents = useMemo(() => {
@@ -55,7 +56,11 @@ export function EventFilters({ cities, events }: EventFiltersProps) {
       ) : (
         <div className="empty-state">
           Для выбранного города афиш пока нет. Можете предложить свою афишу с
-          помощью специальной формы на сайте.
+          помощью{" "}
+          <button className="empty-state__link" type="button" onClick={onOpenInquiry}>
+            специальной формы на сайте
+          </button>
+          .
         </div>
       )}
     </div>

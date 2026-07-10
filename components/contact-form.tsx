@@ -87,8 +87,12 @@ export function ContactForm() {
       nextErrors.meetingUrl = "Ссылка должна начинаться с http:// или https://.";
     }
 
-    if (!/^@?[a-zA-Z0-9_]{5,32}$/.test(telegramId)) {
-      nextErrors.telegramId = "Укажите Telegram ID в формате @username.";
+    if (
+      !/^@?[a-zA-Z0-9_]{5,32}$/.test(telegramId) &&
+      !/^\+?\d[\d\s()-]{9,18}$/.test(telegramId)
+    ) {
+      nextErrors.telegramId =
+        "Укажите Telegram ID в формате @username или номер телефона.";
     }
 
     if (!(file instanceof File) || file.size === 0) {
@@ -166,6 +170,7 @@ export function ContactForm() {
             id="city"
             name="city"
             defaultValue=""
+            required
           >
             <option value="" disabled>
               Выберите город
@@ -187,6 +192,7 @@ export function ContactForm() {
             id="date"
             name="date"
             type="date"
+            required
           />
           {errors.date ? <div className="form__error">{errors.date}</div> : null}
         </div>
@@ -217,6 +223,7 @@ export function ContactForm() {
             name="artists"
             type="text"
             placeholder="Например: Рок-музыкант, Панк-группа, Шумовой артист"
+            required
           />
           {errors.artists ? (
             <div className="form__error">{errors.artists}</div>
@@ -233,6 +240,7 @@ export function ContactForm() {
             name="venue"
             type="text"
             placeholder="Название площадки"
+            required
           />
           {errors.venue ? <div className="form__error">{errors.venue}</div> : null}
         </div>
@@ -247,6 +255,7 @@ export function ContactForm() {
             name="ticketUrl"
             type="url"
             placeholder="https://..."
+            required
           />
           {errors.ticketUrl ? (
             <div className="form__error">{errors.ticketUrl}</div>
@@ -271,14 +280,15 @@ export function ContactForm() {
 
         <div className="form__field">
           <label className="form__label" htmlFor="telegramId">
-            Telegram ID для обратной связи
+            Telegram ID или номер телефона
           </label>
           <input
             className="form__input"
             id="telegramId"
             name="telegramId"
             type="text"
-            placeholder="@username"
+            placeholder="@username или +71234567890"
+            required
           />
           {errors.telegramId ? (
             <div className="form__error">{errors.telegramId}</div>
@@ -295,6 +305,7 @@ export function ContactForm() {
             name="poster"
             type="file"
             accept=".jpg,.jpeg,.png,.webp"
+            required
           />
           <div className="form__hint">
             Поддерживаются JPG, PNG и WEBP до 10 МБ.
