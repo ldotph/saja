@@ -2,7 +2,6 @@ import Image from "next/image";
 import logo from "../assets/logos/logofulln.png";
 import { ContactForm } from "@/components/contact-form";
 import { EventFilters } from "@/components/event-filters";
-import { SiteNav } from "@/components/site-nav";
 import { getCityOptions, getSortedEvents } from "@/data/events";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +12,6 @@ export default async function HomePage() {
 
   return (
     <main className="page-shell">
-      <SiteNav active="events" />
       <section className="hero">
         <div className="hero__backdrop" aria-hidden="true" />
         <header className="hero__header">
@@ -40,6 +38,9 @@ export default async function HomePage() {
           <div className="hero__actions">
             <a className="hero__cta" href="#contact">
               Разместить афишу
+            </a>
+            <a className="hero__cta hero__cta--secondary" href="/releases">
+              Релизы недели
             </a>
           </div>
         </div>
