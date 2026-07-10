@@ -130,6 +130,7 @@ export async function createEventAction(formData: FormData) {
 }
 
 export async function createReleaseAction(formData: FormData) {
+  const releaseUrl = getString(formData, "releaseUrl");
   const cover = formData.get("cover");
   const fileError = validateImageFile(cover instanceof File ? cover : null);
 
@@ -137,11 +138,20 @@ export async function createReleaseAction(formData: FormData) {
     throw new Error(fileError ?? "Прикрепите обложку релиза.");
   }
 
+  if (releaseUrl) {
+    const releaseUrlError = validateUrl(releaseUrl, "Ссылка на релиз");
+
+    if (releaseUrlError) {
+      throw new Error(releaseUrlError);
+    }
+  }
+
   await createRelease(
     {
       artist: getRequiredString(formData, "artist", "исполнитель"),
       title: getRequiredString(formData, "title", "название альбома"),
       description: getRequiredString(formData, "description", "описание"),
+      releaseUrl: normalizeOptionalString(releaseUrl),
       status: (getString(formData, "status") || "draft") as CmsReleaseStatus
     },
     cover
@@ -153,7 +163,16 @@ export async function createReleaseAction(formData: FormData) {
 }
 
 export async function updateReleaseAction(formData: FormData) {
+  const releaseUrl = getString(formData, "releaseUrl");
   const cover = formData.get("cover");
+
+  if (releaseUrl) {
+    const releaseUrlError = validateUrl(releaseUrl, "Ссылка на релиз");
+
+    if (releaseUrlError) {
+      throw new Error(releaseUrlError);
+    }
+  }
 
   if (cover instanceof File && cover.size > 0) {
     const fileError = validateImageFile(cover);
@@ -169,6 +188,7 @@ export async function updateReleaseAction(formData: FormData) {
       artist: getRequiredString(formData, "artist", "исполнитель"),
       title: getRequiredString(formData, "title", "название альбома"),
       description: getRequiredString(formData, "description", "описание"),
+      releaseUrl: normalizeOptionalString(releaseUrl),
       status: (getString(formData, "status") || "draft") as CmsReleaseStatus
     },
     cover instanceof File ? cover : undefined

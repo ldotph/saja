@@ -426,6 +426,13 @@ function ReleaseCard({ release }: { release: ReleaseRecord }) {
         <h3>{release.artist}</h3>
         <div className="admin-artists">{release.title}</div>
         <p className="admin-note">{release.description}</p>
+        {release.releaseUrl ? (
+          <div className="admin-links">
+            <a href={release.releaseUrl} target="_blank" rel="noreferrer">
+              Ссылка на релиз
+            </a>
+          </div>
+        ) : null}
         <div className="admin-actions">
           <form action={publishReleaseAction}>
             <input name="id" type="hidden" value={release.id} />
@@ -491,6 +498,15 @@ function ReleaseCard({ release }: { release: ReleaseRecord }) {
                 defaultValue={release.description}
               />
             </label>
+            <label className="admin-field admin-field--wide">
+              <span>Ссылка на релиз</span>
+              <input
+                name="releaseUrl"
+                type="url"
+                placeholder="https://band.link/..."
+                defaultValue={release.releaseUrl ?? ""}
+              />
+            </label>
             <label className="admin-field">
               <span>Статус</span>
               <select name="status" defaultValue={release.status}>
@@ -532,6 +548,10 @@ function CreateReleaseForm() {
           placeholder="Коротко: почему этот релиз стоит послушать"
           required
         />
+      </label>
+      <label className="admin-field admin-field--wide">
+        <span>Ссылка на релиз</span>
+        <input name="releaseUrl" type="url" placeholder="https://band.link/..." />
       </label>
       <label className="admin-field">
         <span>Статус</span>

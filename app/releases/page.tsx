@@ -56,6 +56,16 @@ export default async function ReleasesPage() {
                   <p className="release-card__description">
                     {release.description}
                   </p>
+                  {release.releaseUrl ? (
+                    <a
+                      className="release-card__listen"
+                      href={release.releaseUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Слушать
+                    </a>
+                  ) : null}
                   <ReleaseVoteForm
                     releaseId={release.id}
                     initialAverageScore={release.averageScore}
@@ -100,6 +110,16 @@ export default async function ReleasesPage() {
                 {bestPreviousMonthRelease.title}
               </h3>
               <p>{bestPreviousMonthRelease.description}</p>
+              {bestPreviousMonthRelease.releaseUrl ? (
+                <a
+                  className="release-card__listen"
+                  href={bestPreviousMonthRelease.releaseUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Слушать
+                </a>
+              ) : null}
               <strong>
                 {bestPreviousMonthRelease.averageScore.toFixed(1)} / 5
                 <small> голосов: {bestPreviousMonthRelease.votesCount}</small>

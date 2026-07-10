@@ -103,6 +103,7 @@ export type CmsRelease = {
   artist: string;
   title: string;
   description: string;
+  releaseUrl?: string;
   coverUrl: string;
   status: CmsReleaseStatus;
   createdAt: string;
@@ -122,6 +123,7 @@ export type ReleaseInput = {
   artist: string;
   title: string;
   description: string;
+  releaseUrl?: string;
   status: CmsReleaseStatus;
 };
 

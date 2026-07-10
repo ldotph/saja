@@ -137,6 +137,7 @@ function normalizeRelease(release: CmsRelease) {
     artist: release.artist?.trim() || "Неизвестный артист",
     title: release.title?.trim() || "Без названия",
     description: release.description?.trim() || "Описание появится позже.",
+    releaseUrl: normalizeOptionalUrl(release.releaseUrl),
     coverUrl: normalizeUploadUrl(release.coverUrl)
   };
 }
@@ -565,6 +566,7 @@ export async function createRelease(input: ReleaseInput, cover: File) {
     artist: input.artist.trim(),
     title: input.title.trim(),
     description: input.description.trim(),
+    releaseUrl: normalizeOptionalUrl(input.releaseUrl),
     coverUrl,
     createdAt: now,
     updatedAt: now
@@ -591,6 +593,7 @@ export async function updateRelease(
   release.artist = input.artist.trim();
   release.title = input.title.trim();
   release.description = input.description.trim();
+  release.releaseUrl = normalizeOptionalUrl(input.releaseUrl);
   release.status = input.status;
   release.updatedAt = new Date().toISOString();
 
