@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ReleaseVoteForm } from "@/components/release-vote-form";
+import { SiteHero } from "@/components/site-hero";
 import {
   listPublishedReleaseRecords,
   listReleaseLeaderboards
@@ -52,23 +53,21 @@ export default async function ReleasesPage() {
 
   return (
     <main className="page-shell releases-page">
-      <section className="releases-hero">
-        <a className="page-back-link" href="/#concerts">
-          ← Вернуться к афишам
-        </a>
-        <p className="eyebrow">Слушаем и спорим</p>
-        <h1>Релизы месяца</h1>
-        <p>
-          Рейтинг альбомов и синглов, вышедших в этом месяце. Оцените релизы от
-          1 до 5: общий рейтинг пересобирается автоматически и учитывает не
-          только среднюю оценку, но и количество голосов.
-        </p>
-      </section>
+      <SiteHero activeSection="releases" />
 
-      <section className="releases-section" aria-labelledby="releases-title">
+      <section
+        className="releases-section"
+        id="releases"
+        aria-labelledby="releases-title"
+      >
         <div className="section-heading">
           <p className="eyebrow">Рейтинг слушателей</p>
-          <h2 id="releases-title">Альбомы и синглы месяца</h2>
+          <h2 id="releases-title">Релизы месяца</h2>
+          <p className="section-copy">
+            Рейтинг альбомов и синглов, вышедших в этом месяце. Оцените релизы
+            от 1 до 5: общий рейтинг пересобирается автоматически и учитывает не
+            только среднюю оценку, но и количество голосов.
+          </p>
         </div>
 
         {releases.length > 0 ? (
