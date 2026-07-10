@@ -5,7 +5,6 @@ import {
   listReleaseLeaderboards
 } from "@/lib/cms/storage";
 import type { ReleaseRecord } from "@/lib/cms/types";
-import { getTurnstileSiteKey } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 
@@ -46,10 +45,9 @@ function Leaderboard({
 }
 
 export default async function ReleasesPage() {
-  const [releases, leaderboards, turnstileSiteKey] = await Promise.all([
+  const [releases, leaderboards] = await Promise.all([
     listPublishedReleaseRecords(),
-    listReleaseLeaderboards(),
-    Promise.resolve(getTurnstileSiteKey())
+    listReleaseLeaderboards()
   ]);
 
   return (
@@ -92,7 +90,6 @@ export default async function ReleasesPage() {
                     releaseId={release.id}
                     initialAverageScore={release.averageScore}
                     initialVotesCount={release.votesCount}
-                    turnstileSiteKey={turnstileSiteKey}
                   />
                 </div>
               </article>

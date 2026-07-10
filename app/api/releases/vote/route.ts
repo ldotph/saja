@@ -1,7 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { parseReleaseScore, voteForRelease } from "@/lib/cms/storage";
-import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const VOTER_COOKIE = "saja_release_voter";
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
@@ -9,16 +8,7 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 type VotePayload = {
   releaseId?: string;
   score?: number;
-  turnstileToken?: string;
 };
-
-function getClientIp(request: NextRequest) {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-real-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-  );
-}
 
 function createVoterHash(voterId: string, userAgent: string) {
   const salt =
@@ -40,18 +30,6 @@ export async function POST(request: NextRequest) {
     if (!releaseId) {
       return NextResponse.json(
         { message: "Релиз не найден." },
-        { status: 400 }
-      );
-    }
-
-    const turnstile = await verifyTurnstileToken(
-      payload.turnstileToken,
-      getClientIp(request)
-    );
-
-    if (!turnstile.success) {
-      return NextResponse.json(
-        { message: "Подтвердите, что вы человек, и попробуйте еще раз." },
         { status: 400 }
       );
     }
