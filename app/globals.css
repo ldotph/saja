@@ -508,6 +508,61 @@ textarea {
   color: var(--accent-strong);
 }
 
+.release-winner {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+  gap: clamp(18px, 4vw, 34px);
+  align-items: center;
+  padding: clamp(18px, 4vw, 34px);
+  border: 1px solid rgba(235, 106, 48, 0.38);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(235, 106, 48, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  box-shadow: var(--shadow-soft);
+}
+
+.release-winner__cover {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: #080808;
+}
+
+.release-winner__body {
+  display: grid;
+  gap: 12px;
+}
+
+.release-winner__body h3 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.release-winner__body p:not(.eyebrow) {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.release-winner__body strong {
+  color: var(--accent);
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  text-transform: uppercase;
+}
+
+.release-winner__body small {
+  margin-left: 12px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .release-leaderboards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1364,6 +1419,7 @@ textarea {
   .admin-form,
   .admin-details,
   .release-card,
+  .release-winner,
   .release-leaderboards {
     grid-template-columns: minmax(0, 1fr);
   }

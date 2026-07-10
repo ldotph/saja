@@ -6,6 +6,19 @@ type SiteHeroProps = {
 };
 
 export function SiteHero({ activeSection }: SiteHeroProps) {
+  const heroCopy =
+    activeSection === "releases"
+      ? {
+          eyebrow: "Релизы месяца",
+          title: "Рейтинг альбомов и синглов, вышедших в этом месяце.",
+          lead: "Оценивайте новые записи от 1 до 5 и помогайте собрать честный рейтинг локальной сцены."
+        }
+      : {
+          eyebrow: "Ближайшие события",
+          title: "Актуальные афиши локальных концертов",
+          lead: "Самые интересные события андеграунд-сцены, быстрый отбор по городам, прямые ссылки на билеты, встречу и маршрут до клуба, а для музыкантов есть хорошая возможность попромить свой гиг."
+        };
+
   return (
     <section className="hero">
       <div className="hero__backdrop" aria-hidden="true" />
@@ -46,13 +59,9 @@ export function SiteHero({ activeSection }: SiteHeroProps) {
           </a>
         </nav>
 
-        <p className="eyebrow">Ближайшие события</p>
-        <h1>Актуальные афиши локальных концертов</h1>
-        <p className="hero__lead">
-          Самые интересные события андеграунд-сцены, быстрый отбор по городам,
-          прямые ссылки на билеты, встречу и маршрут до клуба, а для музыкантов
-          есть хорошая возможность попромить свой гиг.
-        </p>
+        <p className="eyebrow">{heroCopy.eyebrow}</p>
+        <h1>{heroCopy.title}</h1>
+        <p className="hero__lead">{heroCopy.lead}</p>
       </div>
     </section>
   );

@@ -279,6 +279,31 @@ function getLastThirtyDaysRange() {
   return { start, end };
 }
 
+function getPreviousMonthRange() {
+  const now = getMoscowDate();
+  const startOfCurrentMonth = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    1,
+    0,
+    0,
+    0
+  );
+  const startOfPreviousMonth = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth() - 1,
+    1,
+    0,
+    0,
+    0
+  );
+
+  return {
+    start: new Date(startOfPreviousMonth - 3 * 60 * 60 * 1000),
+    end: new Date(startOfCurrentMonth - 3 * 60 * 60 * 1000)
+  };
+}
+
 function filterVotesByRange(
   votes: ReleaseVote[],
   range: { start: Date; end: Date }
@@ -453,6 +478,22 @@ export async function listReleaseLeaderboards() {
       .sort(sortReleaseRecords)
       .slice(0, 10)
   };
+}
+
+export async function getBestPreviousMonthRelease() {
+  const store = await readStore();
+  const previousMonthVotes = filterVotesByRange(
+    store.releaseVotes,
+    getPreviousMonthRange()
+  );
+
+  return (
+    store.releases
+      .filter((release) => release.status === "published")
+      .map((release) => releaseToRecord(release, previousMonthVotes))
+      .filter((release) => release.averageScore > 0)
+      .sort(sortReleaseRecords)[0] ?? null
+  );
 }
 
 export function parseReleaseScore(value: unknown) {

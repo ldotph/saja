@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import { ReleaseVoteForm } from "@/components/release-vote-form";
 import { SiteHero } from "@/components/site-hero";
 import {
-  listPublishedReleaseRecords,
-  listReleaseLeaderboards
+  getBestPreviousMonthRelease,
+  listPublishedReleaseRecords
 } from "@/lib/cms/storage";
-import type { ReleaseRecord } from "@/lib/cms/types";
 
 export const dynamic = "force-dynamic";
 
@@ -14,41 +13,10 @@ export const metadata: Metadata = {
   description: "Рейтинг альбомов и синглов, вышедших в этом месяце."
 };
 
-function Leaderboard({
-  title,
-  releases
-}: {
-  title: string;
-  releases: ReleaseRecord[];
-}) {
-  return (
-    <div className="release-leaderboard">
-      <h3>{title}</h3>
-      {releases.length > 0 ? (
-        <ol>
-          {releases.map((release) => (
-            <li key={release.id}>
-              <span>
-                {release.artist} — {release.title}
-              </span>
-              <strong>
-                {release.averageScore.toFixed(1)} / 5
-                <small> голосов: {release.votesCount}</small>
-              </strong>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <p>Пока не хватает голосов для рейтинга.</p>
-      )}
-    </div>
-  );
-}
-
 export default async function ReleasesPage() {
-  const [releases, leaderboards] = await Promise.all([
+  const [releases, bestPreviousMonthRelease] = await Promise.all([
     listPublishedReleaseRecords(),
-    listReleaseLeaderboards()
+    getBestPreviousMonthRelease()
   ]);
 
   return (
@@ -105,26 +73,45 @@ export default async function ReleasesPage() {
         )}
       </section>
 
-      <section className="releases-section" aria-labelledby="leaders-title">
+      <section
+        className="releases-section"
+        aria-labelledby="previous-month-title"
+      >
         <div className="section-heading">
-          <p className="eyebrow">Архив рейтингов</p>
-          <h2 id="leaders-title">Лидеры по оценкам</h2>
+          <p className="eyebrow">Итоги</p>
+          <h2 id="previous-month-title">Лучший альбом прошлого месяца</h2>
           <p className="section-copy">
-            В лидерстве используется взвешенная формула: релизу с одним
-            идеальным голосом сложнее обогнать альбом, который стабильно высоко
-            оценили десятки слушателей.
+            Победитель выбирается по взвешенному рейтингу: учитывается не
+            только средняя оценка, но и количество голосов.
           </p>
         </div>
-        <div className="release-leaderboards">
-          <Leaderboard
-            title="Прошлая неделя"
-            releases={leaderboards.previousWeek}
-          />
-          <Leaderboard
-            title="Последние 30 дней"
-            releases={leaderboards.lastThirtyDays}
-          />
-        </div>
+
+        {bestPreviousMonthRelease ? (
+          <article className="release-winner">
+            <img
+              className="release-winner__cover"
+              src={bestPreviousMonthRelease.coverUrl}
+              alt={`Обложка: ${bestPreviousMonthRelease.artist} — ${bestPreviousMonthRelease.title}`}
+            />
+            <div className="release-winner__body">
+              <p className="eyebrow">Победитель прошлого месяца</p>
+              <h3>
+                {bestPreviousMonthRelease.artist} —{" "}
+                {bestPreviousMonthRelease.title}
+              </h3>
+              <p>{bestPreviousMonthRelease.description}</p>
+              <strong>
+                {bestPreviousMonthRelease.averageScore.toFixed(1)} / 5
+                <small> голосов: {bestPreviousMonthRelease.votesCount}</small>
+              </strong>
+            </div>
+          </article>
+        ) : (
+          <div className="empty-state">
+            Победитель прошлого месяца появится, когда у релизов будет
+            достаточно оценок.
+          </div>
+        )}
       </section>
     </main>
   );
